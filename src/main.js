@@ -47,15 +47,10 @@ render(renderMostCommented(), filmsContainer);
 const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
 
 // Рендеринг «Карточек фильма»
-for (let i = 0; i < cardsAmount.DEFAULT; i++) {
-  render(renderCard(), filmsListContainer);
-}
+new Array(cardsAmount.DEFAULT).fill(``).forEach(() => render(renderCard(), filmsListContainer));
 
-// Рендеринг «Карточек задачи»
-for (let i = 0; i < filmsListExtra.length; i++) {
-  let filmsListExtraContainer = filmsListExtra[i].querySelector(`.films-list__container`);
+// Рендеринг «Карточек фильма» для Top Rated
+new Array(cardsAmount.EXTRA).fill(``).forEach(() => render(renderCard(), filmsListExtra[0].querySelector(`.films-list__container`)));
 
-  for (let j = 0; j < cardsAmount.EXTRA; j++) {
-    render(renderCard(), filmsListExtraContainer);
-  }
-}
+// Рендеринг «Карточек фильма» для Most Commented
+new Array(cardsAmount.EXTRA).fill(``).forEach(() => render(renderCard(), filmsListExtra[1].querySelector(`.films-list__container`)));
