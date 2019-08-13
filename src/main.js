@@ -7,6 +7,7 @@ import {renderSort} from './components/sort.js';
 import {renderFilmsList} from './components/filmsList.js';
 import {renderTopRated} from './components/topRated.js';
 import {renderMostCommented} from './components/mostCommented.js';
+import {generateCard} from './data.js';
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -17,6 +18,15 @@ const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
 
 const render = (template, node) => node.insertAdjacentHTML(`beforeend`, template);
+
+// Рендеринг сгенерированных карточек
+const renderData = (container, count) => {
+  container.insertAdjacentHTML(`beforeend`, new Array(count)
+    .fill(``)
+    .map(generateCard)
+    .map(renderCard)
+    .join(``));
+};
 
 // Рендеринг «Поиск»
 render(renderSearch(), header);
@@ -47,10 +57,10 @@ render(renderMostCommented(), filmsContainer);
 const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
 
 // Рендеринг «Карточек фильма»
-new Array(cardsAmount.DEFAULT).fill(``).forEach(() => render(renderCard(), filmsListContainer));
+renderData(filmsListContainer, cardsAmount.DEFAULT);
 
 // Рендеринг «Карточек фильма» для Top Rated
-new Array(cardsAmount.EXTRA).fill(``).forEach(() => render(renderCard(), filmsListExtra[0].querySelector(`.films-list__container`)));
+renderData(filmsListExtra[0].querySelector(`.films-list__container`), cardsAmount.EXTRA);
 
 // Рендеринг «Карточек фильма» для Most Commented
-new Array(cardsAmount.EXTRA).fill(``).forEach(() => render(renderCard(), filmsListExtra[1].querySelector(`.films-list__container`)));
+renderData(filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);

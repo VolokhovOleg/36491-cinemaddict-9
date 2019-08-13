@@ -1,4 +1,4 @@
-export const card = {
+export const generateCard = () => ({
   id: Math.random(),
   poster: [
     `images/posters/made-for-each-other.png`,
@@ -34,4 +34,4 @@ export const card = {
   ][Math.floor(Math.random() * 6)],
   description: `Burlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at aBurlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at a`,
   commentsAmount: Math.floor(Math.random() * 10),
-};
+});
