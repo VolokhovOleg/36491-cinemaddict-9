@@ -7,7 +7,7 @@ import {renderSort} from './components/sort.js';
 import {renderFilmsList} from './components/filmsList.js';
 import {renderTopRated} from './components/topRated.js';
 import {renderMostCommented} from './components/mostCommented.js';
-import {generateCard} from './data.js';
+import {cards} from './data.js';
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -19,13 +19,16 @@ const main = document.querySelector(`.main`);
 
 const render = (template, node) => node.insertAdjacentHTML(`beforeend`, template);
 
-// Рендеринг сгенерированных карточек
-const renderData = (container, count) => {
-  container.insertAdjacentHTML(`beforeend`, new Array(count)
-    .fill(``)
-    .map(generateCard)
-    .map(renderCard)
-    .join(``));
+const renderData = (container, maxAmount) => {
+  let arr = cards;
+
+  if (maxAmount <= cards.length) {
+    arr = cards.filter((elem) => cards.indexOf(elem) < maxAmount);
+  }
+
+  arr.forEach((item) => {
+    render(renderCard(item), container);
+  });
 };
 
 // Рендеринг «Поиск»

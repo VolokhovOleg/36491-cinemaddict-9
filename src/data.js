@@ -1,5 +1,38 @@
-export const generateCard = () => ({
+const TOTAL_CARDS_AMOUNT = 15;
+
+const generateComments = () => ({
+  emoji: [
+    `images/emoji/angry.png`,
+    `images/emoji/puke.png`,
+    `images/emoji/sleeping.png`,
+    `images/emoji/smile.png`,
+    `images/emoji/trophy.png`,
+  ][Math.floor(Math.random() * 5)],
+  author: [
+    `Tim Macoveev`,
+    `John Doe`,
+    `Heinz Herald`,
+    `Dan Duryea`,
+  ][Math.floor(Math.random() * 4)],
+  content: [
+    `Interesting setting and a good cast`,
+    `Booooooooooring`,
+    `Very very old. Meh`,
+    `Almost two hours? Seriously?`,
+  ][Math.floor(Math.random() * 4)],
+  date: [
+    `4 days ago`,
+    `3 days ago`,
+    `2 days ago`,
+    `Today`,
+  ][Math.floor(Math.random() * 4)],
+});
+
+const generateCard = () => ({
   id: Math.random(),
+  director: `Anthony Mann`,
+  Writers: [`Anne Wigton`, `Heinz Herald`, `Richard Weil`],
+  Actors: [`Erich von Stroheim`, `Mary Beth Hughes`, `Dan Duryea`],
   poster: [
     `images/posters/made-for-each-other.png`,
     `images/posters/popeye-meets-sinbad.png`,
@@ -22,16 +55,24 @@ export const generateCard = () => ({
     `The Man with the Golden Arm`,
   ][Math.floor(Math.random() * 7)],
   rating: (Math.random() * 10).toFixed(1),
-  release: 1900 + Math.floor(Math.random() * 30),
+  releaseDate: {
+    year: 1900 + Math.floor(Math.random() * 30),
+    month: `March`,
+    day: Math.floor(Math.random() * 30),
+  },
+  country: `USA`,
+  ratingSystem: `18+`,
   runningTime: `${Math.floor(Math.random() * 2)}h ${Math.floor(Math.random() * 59)}m`,
-  genre: [
-    new Set([`Drama`]),
-    new Set([`Cartoon`]),
-    new Set([`Western`]),
-    new Set([`Musical`]),
-    new Set([`Mystery`]),
-    new Set([`Comedy`]),
-  ][Math.floor(Math.random() * 6)],
-  description: `Burlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at aBurlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at a`,
-  commentsAmount: Math.floor(Math.random() * 10),
+  genres: new Set([
+    [`Drama`, `Cartoon`, `Western`, `Musical`, `Mystery`, `Comedy`][Math.floor(Math.random() * 6)],
+    [`Drama`, `Cartoon`, `Western`, `Musical`, `Mystery`, `Comedy`][Math.floor(Math.random() * 6)],
+    [`Drama`, `Cartoon`, `Western`, `Musical`, `Mystery`, `Comedy`][Math.floor(Math.random() * 6)],
+  ]),
+  description: {
+    short: `Burlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at aBurlesque comic Ralph "Skid" Johnson (Skelly), and specialty dancer Bonny Lee King (Carroll), end up together on a cold, rainy night at a…`,
+    full: `The film opens following a murder at a cabaret in Mexico City in 1936, and then presents the events leading up to it in flashback. The Great Flamarion (Erich von Stroheim) is an arrogant, friendless, and misogynous marksman who displays his trick gunshot act in the vaudeville circuit. His show features a beautiful assistant, Connie (Mary Beth Hughes) and her drunken husband Al (Dan Duryea), Flamarion's other assistant. Flamarion falls in love with Connie, the movie's femme fatale, and is soon manipulated by her into killing her no good husband during one of their acts.`,
+  },
+  comments: new Array(Math.floor(Math.random() * 5)).fill({}).map(generateComments),
 });
+
+export const cards = new Array(TOTAL_CARDS_AMOUNT).fill({}).map(generateCard);
