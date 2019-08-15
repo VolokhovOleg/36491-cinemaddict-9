@@ -7,22 +7,26 @@ import {renderSort} from './components/sort.js';
 import {renderFilmsList} from './components/filmsList.js';
 import {renderTopRated} from './components/topRated.js';
 import {renderMostCommented} from './components/mostCommented.js';
+import {renderFilmDetail} from './components/film-detail.js';
 import {cards} from './data.js';
+import {moviesWatched} from './data.js';
+import {filmsAmount} from './data.js';
+import {filters} from './data.js';
 
 const cardsAmount = {
   DEFAULT: 5,
   EXTRA: 2
 };
-
 const header = document.querySelector(`.header`);
+const body = document.querySelector(`body`);
 const main = document.querySelector(`.main`);
 
 const render = (template, node) => node.insertAdjacentHTML(`beforeend`, template);
 
-const renderData = (container, maxAmount) => {
+const renderData = (container, maxAmount = 1) => {
   let arr = cards;
 
-  if (maxAmount <= cards.length) {
+  if (maxAmount <= filmsAmount) {
     arr = cards.filter((elem) => cards.indexOf(elem) < maxAmount);
   }
 
@@ -38,7 +42,10 @@ render(renderSearch(), header);
 render(renderRank(), header);
 
 // Рендеринг «Меню»
-render(renderMenu(), main);
+render(renderMenu(filters), main);
+
+// Рендеринг Popup
+render(renderFilmDetail(cards[0]), body);
 
 // Рендеринг «Сортировки»
 render(renderSort(), main);

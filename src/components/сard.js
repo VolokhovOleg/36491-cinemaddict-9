@@ -1,9 +1,10 @@
+import {checkWordEnding} from './../utils.js';
+
 const checkControls = (isCheck = false) => isCheck ? `film-card__controls-item--active` : ``;
-const checkWordEnding = (commentsAmount) => commentsAmount !== 1 ? `s` : ``;
 
 export const renderCard = ({id, title, rating, releaseDate, runningTime, genres, poster, description, comments, isInWishList, isWatched, isFavorite}) =>
-  `<article class="film-card" id="${id}">
-  <h3 class="film-card__title">${title}</h3>
+  `<article class="film-card" data-id="${id}">
+  <h3 class="film-card__title">${title.short}</h3>
   <p class="film-card__rating">${rating}</p>
   <p class="film-card__info">
     <span class="film-card__year">${releaseDate.year}</span>
