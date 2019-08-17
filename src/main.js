@@ -79,7 +79,7 @@ if (cardsAmount.TOTAL > cardsAmount.DEFAULT) {
     LoadMoreBtn.remove();
 
     // Навешиваем листенер на новые карточки карточки
-    let newRenderedCards = Array.from(document.querySelectorAll(`.film-card`));
+    let newRenderedCards = Array.from(filmsListContainer.querySelectorAll(`.film-card`));
 
     let newFilmCards = newRenderedCards.filter((element) => newRenderedCards.indexOf(element) >= cardsAmount.DEFAULT);
 
