@@ -3,5 +3,4 @@ export const renderFilmsList = () => `<section class="films-list">
 
   <div class="films-list__container"></div>
 
-  <button class="films-list__show-more">Show more</button>
 </section>`;

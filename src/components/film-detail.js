@@ -1,6 +1,7 @@
 import {checkWordEnding} from './../utils.js';
+import {checkChecked} from './../utils.js';
 
-export const renderFilmDetail = ({poster, title, ratingSystem, director, writers, actors, releaseDate, runningTime, country, genres, description, comments}) => `<section class="film-details">
+export const renderFilmDetail = ({poster, title, ratingSystem, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWishList, isWatched, isFavorite}) => `<section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="form-details__top-container">
       <div class="film-details__close">
@@ -65,13 +66,13 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
       </div>
 
       <section class="film-details__controls">
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist">
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${checkChecked(isInWishList)}>
         <label for="watchlist" class="film-details__control-label film-details__control-label--watchlist">Add to watchlist</label>
 
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched">
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${checkChecked(isWatched)}>
         <label for="watched" class="film-details__control-label film-details__control-label--watched">Already watched</label>
 
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite">
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${checkChecked(isFavorite)}>
         <label for="favorite" class="film-details__control-label film-details__control-label--favorite">Add to favorites</label>
       </section>
     </div>

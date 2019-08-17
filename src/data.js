@@ -29,7 +29,7 @@ const generateComments = () => ({
 });
 
 const generateCard = () => ({
-  id: Math.random(),
+  id: Math.random().toString(),
   director: `Anthony Mann`,
   writers: [`Anne Wigton`, `Heinz Herald`, `Richard Weil`],
   actors: [`Erich von Stroheim`, `Mary Beth Hughes`, `Dan Duryea`],
@@ -95,4 +95,3 @@ const generateFilters = () => ({
 export const filters = generateFilters();
 export const cards = new Array(totalCards()).fill({}).map(generateCard);
 export const filmsAmount = cards.length;
-export const moviesWatched = totalCards() - Math.floor(Math.random() * 2);
