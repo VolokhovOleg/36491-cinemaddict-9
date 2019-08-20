@@ -2,7 +2,7 @@ import {renderSearch} from './components/search.js';
 import {renderRank} from './components/rank.js';
 import {renderMenu} from './components/menu.js';
 import {renderFilmsContainer} from './components/films-container.js';
-import {renderCard} from './components/сard.js';
+import {renderCard} from './components/card.js';
 import {renderSort} from './components/sort.js';
 import {renderFilmsList} from './components/films-list.js';
 import {renderTopRated} from './components/top-rated.js';
