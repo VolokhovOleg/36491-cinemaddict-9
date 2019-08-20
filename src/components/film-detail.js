@@ -1,7 +1,6 @@
-import {checkWordEnding} from './../utils.js';
-import {checkChecked} from './../utils.js';
+import {checkWordEnding, checkChecked} from './../utils.js';
 
-export const renderFilmDetail = ({poster, title, ratingSystem, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWishList, isWatched, isFavorite}) => `<section class="film-details">
+export const renderFilmDetail = ({poster, title, ratingSystem, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) => `<section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="form-details__top-container">
       <div class="film-details__close">
@@ -9,7 +8,7 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
       </div>
       <div class="film-details__info-wrap">
         <div class="film-details__poster">
-          <img class="film-details__poster-img" src="${poster}" alt="${title.full}">
+          <img class="film-details__poster-img" src="${poster}" alt="${title}">
 
           <p class="film-details__age">${ratingSystem}</p>
         </div>
@@ -17,12 +16,12 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
         <div class="film-details__info">
           <div class="film-details__info-head">
             <div class="film-details__title-wrap">
-              <h3 class="film-details__title">${title.short}</h3>
-              <p class="film-details__title-original">${title.full}</p>
+              <h3 class="film-details__title">${title}</h3>
+              <p class="film-details__title-original">${title}</p>
             </div>
 
             <div class="film-details__rating">
-              <p class="film-details__total-rating">${ratingSystem}</p>
+              <p class="film-details__total-rating">${rating}</p>
             </div>
           </div>
 
@@ -33,11 +32,11 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Writers</td>
-              <td class="film-details__cell">${writers}</td>
+              <td class="film-details__cell">${writers.join(`, `)}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Actors</td>
-              <td class="film-details__cell">${actors}</td>
+              <td class="film-details__cell">${actors.join(`, `)}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Release Date</td>
@@ -60,13 +59,13 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
           </table>
 
           <p class="film-details__film-description">
-            ${description.full}
+            ${description}
           </p>
         </div>
       </div>
 
       <section class="film-details__controls">
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${checkChecked(isInWishList)}>
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${checkChecked(isInWatchList)}>
         <label for="watchlist" class="film-details__control-label film-details__control-label--watchlist">Add to watchlist</label>
 
         <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${checkChecked(isWatched)}>
@@ -81,21 +80,7 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
       <section class="film-details__comments-wrap">
         <h3 class="film-details__comments-title">Comment${checkWordEnding(comments.length)} <span class="film-details__comments-count">${comments.length}</span></h3>
 
-        <ul class="film-details__comments-list">
-          ${Array.from(comments).map((comment) => `<li class="film-details__comment">
-            <span class="film-details__comment-emoji">
-              <img src="./${comment.emoji}" width="55" height="55" alt="emoji">
-            </span>
-            <div>
-              <p class="film-details__comment-text">${comment.content}</p>
-              <p class="film-details__comment-info">
-                <span class="film-details__comment-author">${comment.author}</span>
-                <span class="film-details__comment-day">${comment.date}</span>
-                <button class="film-details__comment-delete">Delete</button>
-              </p>
-            </div>
-          </li>`).join(``)}
-        </ul>
+        <ul class="film-details__comments-list"></ul>
 
         <div class="film-details__new-comment">
           <div for="add-emoji" class="film-details__add-emoji-label"></div>
