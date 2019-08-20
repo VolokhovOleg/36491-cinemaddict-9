@@ -1,7 +1,7 @@
-import {checkWordEnding} from './../utils.js';
-import {checkChecked} from './../utils.js';
+import {isAddWordEnding} from './../utils.js';
+import {isAddChecked} from './../utils.js';
 
-export const renderFilmDetail = ({poster, title, ratingSystem, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWishList, isWatched, isFavorite}) => `<section class="film-details">
+export const renderFilmDetail = ({poster, title, ratingSystem, rating, comments, description, isInWishList, isWatched, isFavorite}) => `<section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="form-details__top-container">
       <div class="film-details__close">
@@ -9,7 +9,7 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
       </div>
       <div class="film-details__info-wrap">
         <div class="film-details__poster">
-          <img class="film-details__poster-img" src="${poster}" alt="${title.full}">
+          <img class="film-details__poster-img" src="${poster}" alt="${title}">
 
           <p class="film-details__age">${ratingSystem}</p>
         </div>
@@ -17,69 +17,38 @@ export const renderFilmDetail = ({poster, title, ratingSystem, director, writers
         <div class="film-details__info">
           <div class="film-details__info-head">
             <div class="film-details__title-wrap">
-              <h3 class="film-details__title">${title.short}</h3>
-              <p class="film-details__title-original">${title.full}</p>
+              <h3 class="film-details__title">${title}</h3>
+              <p class="film-details__title-original">${title}</p>
             </div>
 
             <div class="film-details__rating">
-              <p class="film-details__total-rating">${ratingSystem}</p>
+              <p class="film-details__total-rating">${rating}</p>
             </div>
           </div>
 
-          <table class="film-details__table">
-            <tr class="film-details__row">
-              <td class="film-details__term">Director</td>
-              <td class="film-details__cell">${director}</td>
-            </tr>
-            <tr class="film-details__row">
-              <td class="film-details__term">Writers</td>
-              <td class="film-details__cell">${writers}</td>
-            </tr>
-            <tr class="film-details__row">
-              <td class="film-details__term">Actors</td>
-              <td class="film-details__cell">${actors}</td>
-            </tr>
-            <tr class="film-details__row">
-              <td class="film-details__term">Release Date</td>
-              <td class="film-details__cell">${releaseDate.day} ${releaseDate.month} ${releaseDate.year} </td>
-            </tr>
-            <tr class="film-details__row">
-              <td class="film-details__term">Runtime</td>
-              <td class="film-details__cell">${runningTime}</td>
-            </tr>
-            <tr class="film-details__row">
-              <td class="film-details__term">Country</td>
-              <td class="film-details__cell">${country}</td>
-            </tr>
-            <tr class="film-details__row">
-              <td class="film-details__term">Genre${checkWordEnding(genres.length)}</td>
-              <td class="film-details__cell">
-                ${Array.from(genres).map((genre) => `<span class="film-details__genre">${genre}</span>`).join(``)}
-              </td>
-            </tr>
-          </table>
+          <table class="film-details__table"></table>
 
           <p class="film-details__film-description">
-            ${description.full}
+            ${description}
           </p>
         </div>
       </div>
 
       <section class="film-details__controls">
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${checkChecked(isInWishList)}>
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${isAddChecked(isInWishList)}>
         <label for="watchlist" class="film-details__control-label film-details__control-label--watchlist">Add to watchlist</label>
 
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${checkChecked(isWatched)}>
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${isAddChecked(isWatched)}>
         <label for="watched" class="film-details__control-label film-details__control-label--watched">Already watched</label>
 
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${checkChecked(isFavorite)}>
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${isAddChecked(isFavorite)}>
         <label for="favorite" class="film-details__control-label film-details__control-label--favorite">Add to favorites</label>
       </section>
     </div>
 
     <div class="form-details__bottom-container">
       <section class="film-details__comments-wrap">
-        <h3 class="film-details__comments-title">Comment${checkWordEnding(comments.length)} <span class="film-details__comments-count">${comments.length}</span></h3>
+        <h3 class="film-details__comments-title">Comment${isAddWordEnding(comments.length)} <span class="film-details__comments-count">${comments.length}</span></h3>
 
         <ul class="film-details__comments-list">
           ${Array.from(comments).map((comment) => `<li class="film-details__comment">

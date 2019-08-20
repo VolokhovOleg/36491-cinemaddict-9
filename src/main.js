@@ -4,25 +4,30 @@ import {renderMenu} from './components/menu.js';
 import {renderFilmsContainer} from './components/films-container.js';
 import {renderCard} from './components/сard.js';
 import {renderSort} from './components/sort.js';
-import {renderFilmsList} from './components/filmsList.js';
+import {renderFilmsList} from './components/films-list.js';
 import {renderTopRated} from './components/top-rated.js';
 import {renderMostCommented} from './components/most-commented.js';
-import {renderFilmDetail} from './components/film-detail.js';
 import {renderLoadMoreBtn} from './components/load-more-btn.js';
 import {renderFooterStats} from './components/footer-stats.js';
-import {cards} from './data.js';
-import {filmsAmount} from './data.js';
-import {filters} from './data.js';
-import {isEscKeycode} from './utils.js';
+import {generateFilters} from './data.js';
+import {totalCards} from './data.js';
+import {generateCard} from './data.js';
+import {renderFilmDetail} from './components/film-detail.js';
+import {renderFilmDetailRow} from './components/film-details-row.js';
+
+const filters = generateFilters();
+const cards = new Array(totalCards()).fill({}).map(generateCard);
+const filmsAmount = cards.length;
 
 const cardsAmount = {
-  TOTAL: cards.length,
+  TOTAL: filmsAmount,
   DEFAULT: 5,
   EXTRA: 2,
 };
-const body = document.querySelector(`body`);
+
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
+const body = document.querySelector(`body`);
 const footerStats = document.querySelector(`.footer__statistics`);
 
 const render = (template, node) => node.insertAdjacentHTML(`beforeend`, template);
@@ -41,6 +46,17 @@ const renderData = (container, maxAmount = 1) => {
 
 // Рендеринг «Поиск»
 render(renderSearch(), header);
+
+// Рендеринг «Попапа»
+render(renderFilmDetail(cards[0]), body);
+const filmDetail = document.querySelector(`.film-details__table`);
+
+for (const key in cards[0].filmDetails) {
+  if ({}.hasOwnProperty.call(cards[0].filmDetails, key)) {
+    // Рендеринг строки в таблицу с дополнительной информацией
+    render(renderFilmDetailRow(key, cards[0].filmDetails[key]), filmDetail);
+  }
+}
 
 // Рендеринг «Звание пользователя»
 render(renderRank(), header);
@@ -66,33 +82,24 @@ const filmsList = document.querySelector(`.films-list`);
 if (cardsAmount.TOTAL > cardsAmount.DEFAULT) {
   // Рендеринг «Show more»
   render(renderLoadMoreBtn(), filmsList);
-  const LoadMoreBtn = document.querySelector(`.films-list__show-more`);
+  const loadMoreBtn = document.querySelector(`.films-list__show-more`);
 
   // Рендеринг Оставшиеся карточки
-  LoadMoreBtn.addEventListener(`click`, () => {
+  loadMoreBtn.addEventListener(`click`, () => {
     let arr = cards.filter((element) => cards.indexOf(element) >= cardsAmount.DEFAULT);
 
     arr.forEach((item) => {
       render(renderCard(item), filmsListContainer);
     });
 
-    LoadMoreBtn.remove();
-
-    // Навешиваем листенер на новые карточки карточки
-    let newRenderedCards = Array.from(filmsListContainer.querySelectorAll(`.film-card`));
-
-    let newFilmCards = newRenderedCards.filter((element) => newRenderedCards.indexOf(element) >= cardsAmount.DEFAULT);
-
-    newFilmCards.forEach((item) => {
-      addCardsListener(item);
-    });
+    loadMoreBtn.remove();
   });
 }
 
-// Рендеринг Котейнера для Top Rated
+// Рендеринг контейнера для Top Rated
 render(renderTopRated(), filmsContainer);
 
-// Рендеринг Котейнера для Most Commented
+// Рендеринг контейнера для Most Commented
 render(renderMostCommented(), filmsContainer);
 const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
 
@@ -104,39 +111,3 @@ renderData(filmsListExtra[0].querySelector(`.films-list__container`), cardsAmoun
 
 // Рендеринг «Карточек фильма» для Most Commented
 renderData(filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);
-
-const filmCard = document.querySelectorAll(`.film-card`);
-
-// Навешиваем листенер на карточки
-const addCardsListener = (item) => {
-  item.addEventListener(`click`, () => {
-    let idCard = item.getAttribute(`data-id`);
-    let pickedCard = cards.filter((element) => element.id === idCard);
-
-    // Рендеринг Popup
-    render(renderFilmDetail(...pickedCard), body);
-
-    body.classList.add(`hide-overflow`);
-
-    // Удаление карточки
-    let closeBtn = document.querySelector(`.film-details__close-btn`);
-    let popup = document.querySelector(`.film-details`);
-
-    closeBtn.addEventListener(`click`, () => {
-      popup.remove();
-      body.classList.remove(`hide-overflow`);
-    });
-
-    document.addEventListener(`keydown`, (evt) => {
-      if (isEscKeycode(evt.keyCode)) {
-        popup.remove();
-        body.classList.remove(`hide-overflow`);
-      }
-    });
-  });
-};
-
-filmCard.forEach((item) => {
-  addCardsListener(item);
-});
-
