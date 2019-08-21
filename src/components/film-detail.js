@@ -1,4 +1,4 @@
-import {checkWordEnding, checkChecked} from './../utils.js';
+import {checkWordEnding, checkChecked, convertMonth} from './../utils.js';
 
 export const renderFilmDetail = ({poster, title, ratingSystem, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) => `<section class="film-details">
   <form class="film-details__inner" action="" method="get">
@@ -40,7 +40,7 @@ export const renderFilmDetail = ({poster, title, ratingSystem, rating, director,
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Release Date</td>
-              <td class="film-details__cell">${releaseDate.day} ${releaseDate.month} ${releaseDate.year} </td>
+              <td class="film-details__cell">${releaseDate.getDay()} ${convertMonth(releaseDate.getMonth())} ${releaseDate.getFullYear()} </td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Runtime</td>

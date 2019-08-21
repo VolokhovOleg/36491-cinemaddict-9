@@ -111,10 +111,10 @@ renderData(filmsListExtra[0].querySelector(`.films-list__container`), cardsAmoun
 // Рендеринг «Карточек фильма» для Most Commented
 renderData(filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);
 
-// // Рендеринг Popup
-// render(renderFilmDetail(cards[0]), body);
-//
-// const commentList = document.querySelector(`.film-details__comments-list`);
-//
-// // Рендеринг комментариев
-// cards[0].comments.map((comment) => render(renderComment(comment), commentList));
+// Рендеринг Popup
+render(renderFilmDetail(cards[0]), body);
+
+const commentList = document.querySelector(`.film-details__comments-list`);
+
+// Рендеринг комментариев
+cards[0].comments.map((comment) => render(renderComment(comment), commentList));

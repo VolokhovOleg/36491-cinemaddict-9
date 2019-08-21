@@ -7,7 +7,7 @@ export const renderCard = ({title, rating, releaseDate, runningTime, genres, pos
   <h3 class="film-card__title">${title}</h3>
   <p class="film-card__rating">${rating}</p>
   <p class="film-card__info">
-    <span class="film-card__year">${releaseDate.year}</span>
+    <span class="film-card__year">${releaseDate.getFullYear()}</span>
     <span class="film-card__duration">${runningTime}</span>
     <span class="film-card__genre">${Array.from(genres)[0]}</span>
   </p>
