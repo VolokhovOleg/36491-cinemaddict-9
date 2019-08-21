@@ -76,12 +76,15 @@ if (cardsAmount.TOTAL > cardsAmount.DEFAULT) {
 
   // Рендеринг карточиек
   loadMoreBtn.addEventListener(`click`, () => {
-
     let arr = cards.filter((element) => cards.indexOf(element) <= renderIndex.max && cards.indexOf(element) > renderIndex.min);
 
     arr.forEach((item) => {
       render(renderCard(item), filmsListContainer);
     });
+
+    if (renderIndex.max % cardsAmount.TOTAL === 0) {
+      loadMoreBtn.remove();
+    }
 
     renderIndex.min = renderIndex.max;
     renderIndex.max += cardsAmount.DEFAULT;
@@ -108,10 +111,10 @@ renderData(filmsListExtra[0].querySelector(`.films-list__container`), cardsAmoun
 // Рендеринг «Карточек фильма» для Most Commented
 renderData(filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);
 
-// Рендеринг Popup
-render(renderFilmDetail(cards[0]), body);
-
-const commentList = document.querySelector(`.film-details__comments-list`);
-
-// Рендеринг комментариев
-cards[0].comments.map((comment) => render(renderComment(comment), commentList));
+// // Рендеринг Popup
+// render(renderFilmDetail(cards[0]), body);
+//
+// const commentList = document.querySelector(`.film-details__comments-list`);
+//
+// // Рендеринг комментариев
+// cards[0].comments.map((comment) => render(renderComment(comment), commentList));
