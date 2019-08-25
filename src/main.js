@@ -63,7 +63,6 @@ const popUpRender = (item) => {
   trackClosedPopup();
 };
 
-
 const renderCards = (data, container, maxAmount = 1) => {
   let arr = data;
 
