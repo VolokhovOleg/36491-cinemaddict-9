@@ -1,13 +1,35 @@
-export const renderComment = (comment) => `<li class="film-details__comment">
+import {createElement} from './../utils.js';
+
+export class Comment {
+  constructor(comment) {
+    this._emoji = comment.emoji;
+    this._content = comment.content;
+    this._author = comment.author;
+    this._date = comment.date;
+    this._element = null;
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  getTemplate() {
+    return `<li class="film-details__comment">
   <span class="film-details__comment-emoji">
-    <img src="./${comment.emoji}" width="55" height="55" alt="emoji">
+    <img src="./${this._emoji}" width="55" height="55" alt="emoji">
   </span>
   <div>
-    <p class="film-details__comment-text">${comment.content}</p>
+    <p class="film-details__comment-text">${this._content}</p>
     <p class="film-details__comment-info">
-      <span class="film-details__comment-author">${comment.author}</span>
-      <span class="film-details__comment-day">${comment.date}</span>
+      <span class="film-details__comment-author">${this._author}</span>
+      <span class="film-details__comment-day">${this._date}</span>
       <button class="film-details__comment-delete">Delete</button>
     </p>
   </div>
 </li>`;
+  }
+}

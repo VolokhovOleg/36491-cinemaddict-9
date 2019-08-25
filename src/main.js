@@ -1,18 +1,18 @@
-import {renderSearch} from './components/search.js';
-import {renderRank} from './components/rank.js';
-import {renderMenu} from './components/menu.js';
-import {renderFilmsContainer} from './components/films-container.js';
-import {renderCard} from './components/card.js';
-import {renderSort} from './components/sort.js';
-import {renderFilmsList} from './components/films-list.js';
-import {renderTopRated} from './components/top-rated.js';
-import {renderMostCommented} from './components/most-commented.js';
-import {renderFilmDetail} from './components/film-detail.js';
-import {renderLoadMoreBtn} from './components/load-more-btn.js';
-import {renderFooterStats} from './components/footer-stats.js';
-import {renderComment} from './components/comment.js';
+import {Search} from './components/search.js';
+import {Rank} from './components/rank.js';
+import {Menu} from './components/menu.js';
+import {FilmsContainer} from './components/films-container.js';
+import {CardsTemplate} from './components/card.js';
+import {Sort} from './components/sort.js';
+import {FilmsList} from './components/films-list.js';
+import {TopRated} from './components/top-rated.js';
+import {MostCommented} from './components/most-commented.js';
+import {FilmDetail} from './components/film-detail.js';
+import {LoadMoreBtn} from './components/load-more-btn.js';
+import {FooterStats} from './components/footer-stats.js';
+import {Comment} from './components/comment.js';
 import {generateFilm, generateFilters} from './data.js';
-import {getRandomInt} from './utils.js';
+import {getRandomInt, render} from './utils.js';
 
 const cards = new Array(getRandomInt(1, 18)).fill({}).map(generateFilm);
 const filters = generateFilters();
@@ -26,63 +26,107 @@ const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
 const footerStats = document.querySelector(`.footer__statistics`);
 
-const render = (template, node) => node.insertAdjacentHTML(`beforeend`, template);
+const onEscKeyDown = (evt) => {
+  if (evt.key === `Escape` || evt.key === `Esc`) {
+    document.querySelector(`.film-details`).remove();
+    body.style = ``;
+    document.removeEventListener(`keydown`, onEscKeyDown);
+  }
+};
 
-const renderData = (container, maxAmount = 1) => {
-  let arr = cards;
+const trackOpenedCard = (card, item) => card
+  .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
+  .forEach((selector) => selector.addEventListener(`click`, () => popUpRender(item)));
+
+const trackClosedPopup = () => {
+  document.addEventListener(`keydown`, onEscKeyDown);
+
+  document.querySelector(`.film-details__close-btn`).addEventListener(`click`, () => {
+    document.querySelector(`.film-details`).remove();
+    document.removeEventListener(`keydown`, onEscKeyDown);
+    body.style = ``;
+  });
+};
+
+const popUpRender = (item) => {
+  // Рендеринг Popup
+  render(body, new FilmDetail(item).getElement());
+
+  let commentList = document.querySelector(`.film-details__comments-list`);
+
+  // Рендеринг комментариев
+  item.comments.map((comment) => render(commentList, new Comment(comment).getElement()));
+
+  // Чтобы не было двойного скрола
+  body.style = `overflow: hidden;`;
+
+  trackClosedPopup();
+};
+
+
+const renderCards = (data, container, maxAmount = 1) => {
+  let arr = data;
 
   if (maxAmount <= cardsAmount.TOTAL) {
-    arr = cards.filter((elem) => cards.indexOf(elem) < maxAmount);
+    arr = data.filter((elem) => data.indexOf(elem) < maxAmount);
   }
 
   arr.forEach((item) => {
-    render(renderCard(item), container);
+    let card = new CardsTemplate(item);
+
+    trackOpenedCard(card.getElement(), item);
+
+    render(container, card.getElement());
   });
 };
 
 // Рендеринг «Поиск»
-render(renderSearch(), header);
+render(header, new Search().getElement());
 
 // Рендеринг «Звание пользователя»
-render(renderRank(), header);
+render(header, new Rank().getElement());
 
 // Рендеринг «Меню»
-render(renderMenu(filters), main);
+render(main, new Menu(filters).getElement());
 
 // Рендеринг «Сортировки»
-render(renderSort(), main);
+render(main, new Sort().getElement());
 
 // Рендеринг «Контент»
-render(renderFilmsContainer(), main);
+render(main, new FilmsContainer().getElement());
 const filmsContainer = document.querySelector(`.films`);
 
 // Рендеринг количества фильмов в сервисе
-render(renderFooterStats(cardsAmount.TOTAL), footerStats);
+render(footerStats, new FooterStats(cardsAmount.TOTAL).getElement());
 
 // Рендеринг «Котейнер для карточек»
-render(renderFilmsList(), filmsContainer);
+render(filmsContainer, new FilmsList().getElement());
 const filmsListContainer = document.querySelector(`.films-list__container`);
 const filmsList = document.querySelector(`.films-list`);
 
 if (cardsAmount.TOTAL > cardsAmount.DEFAULT) {
   let renderIndex = {
-    min: cardsAmount.DEFAULT - 1,
-    max: cardsAmount.DEFAULT - 1 + cardsAmount.DEFAULT
+    min: 5,
+    max: 10
   };
 
   // Рендеринг «Show more»
-  render(renderLoadMoreBtn(), filmsList);
+  render(filmsList, new LoadMoreBtn().getElement());
   const loadMoreBtn = document.querySelector(`.films-list__show-more`);
 
   // Рендеринг карточиек
   loadMoreBtn.addEventListener(`click`, () => {
-    let arr = cards.filter((element) => cards.indexOf(element) <= renderIndex.max && cards.indexOf(element) > renderIndex.min);
+    let arr = cards.filter((element) => cards.indexOf(element) + 1 <= renderIndex.max && cards.indexOf(element) + 1 > renderIndex.min);
 
     arr.forEach((item) => {
-      render(renderCard(item), filmsListContainer);
+      let card = new CardsTemplate(item);
+
+      trackOpenedCard(card.getElement(), item);
+
+      render(filmsListContainer, card.getElement());
     });
 
-    if (renderIndex.max % cardsAmount.TOTAL === 0) {
+    if (renderIndex.max >= cardsAmount.TOTAL || renderIndex.max % cardsAmount.TOTAL === 0) {
       loadMoreBtn.remove();
     }
 
@@ -96,25 +140,17 @@ if (cardsAmount.TOTAL > cardsAmount.DEFAULT) {
 }
 
 // Рендеринг Котейнера для Top Rated
-render(renderTopRated(), filmsContainer);
+render(filmsContainer, new TopRated().getElement());
 
 // Рендеринг Котейнера для Most Commented
-render(renderMostCommented(), filmsContainer);
+render(filmsContainer, new MostCommented().getElement());
 const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
 
 // Рендеринг «Карточек фильма»
-renderData(filmsListContainer, cardsAmount.DEFAULT);
+renderCards(cards, filmsListContainer, cardsAmount.DEFAULT);
 
 // Рендеринг «Карточек фильма» для Top Rated
-renderData(filmsListExtra[0].querySelector(`.films-list__container`), cardsAmount.EXTRA);
+renderCards(cards, filmsListExtra[0].querySelector(`.films-list__container`), cardsAmount.EXTRA);
 
 // Рендеринг «Карточек фильма» для Most Commented
-renderData(filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);
-
-// Рендеринг Popup
-render(renderFilmDetail(cards[0]), body);
-
-const commentList = document.querySelector(`.film-details__comments-list`);
-
-// Рендеринг комментариев
-cards[0].comments.map((comment) => render(renderComment(comment), commentList));
+renderCards(cards, filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);

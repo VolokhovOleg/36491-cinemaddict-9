@@ -1,4 +1,3 @@
-const ESC_KEYCODE = 27;
 const CALENDAR = {
   '1': `January`,
   '2': `February`,
@@ -15,7 +14,17 @@ const CALENDAR = {
 };
 const TEN_YEAR_IN_MS = 283996800000;
 
-export const isEscKeycode = (keyCode) => keyCode === ESC_KEYCODE;
+export const createElement = (template) => {
+  const newElement = document.createElement(`div`);
+
+  newElement.innerHTML = template;
+  return newElement.firstChild;
+};
+
+export const render = (container, element) => {
+  container.append(element);
+};
+
 export const checkWordEnding = (commentsAmount) => commentsAmount !== 1 ? `s` : ``;
 export const checkChecked = (elem) => elem ? `checked` : ``;
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
