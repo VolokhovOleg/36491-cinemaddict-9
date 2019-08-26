@@ -13,7 +13,7 @@ import {FooterStats} from './components/footer-stats.js';
 import {Comment} from './components/comment.js';
 import {NoFilms} from './components/no-films.js';
 import {generateFilm, generateFilters} from './data.js';
-import {getRandomInt, render} from './utils.js';
+import {getRandomInt, render, unrender} from './utils.js';
 
 const cards = new Array(getRandomInt(0, 18)).fill({}).map(generateFilm);
 const filters = generateFilters();
@@ -29,41 +29,13 @@ const footerStats = document.querySelector(`.footer__statistics`);
 const removeOnEscListener = () => document.removeEventListener(`keydown`, onEscKeyDown);
 const addOnEscListener = () => document.addEventListener(`keydown`, onEscKeyDown);
 
-const onEscKeyDown = (evt) => {
-  let commentArea = document.querySelector(`.film-details__comment-input`);
-
-  if (evt.key === `Escape` || evt.key === `Esc`) {
-    document.querySelector(`.film-details`).remove();
-    body.style = ``;
-    removeOnEscListener();
-    commentArea.removeEventListener(`focus`, removeOnEscListener);
-    commentArea.removeEventListener(`blur`, addOnEscListener);
-  }
-};
-
-const trackOpenedCard = (card, item) => card
-  .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
-  .forEach((selector) => selector.addEventListener(`click`, () => popUpRender(item)));
-
-const trackClosedPopup = () => {
-  let commentArea = document.querySelector(`.film-details__comment-input`);
-
-  addOnEscListener();
-  commentArea.addEventListener(`focus`, removeOnEscListener);
-  commentArea.addEventListener(`blur`, addOnEscListener);
-
-  document.querySelector(`.film-details__close-btn`).addEventListener(`click`, () => {
-    document.querySelector(`.film-details`).remove();
-    removeOnEscListener();
-    commentArea.removeEventListener(`focus`, removeOnEscListener);
-    commentArea.removeEventListener(`blur`, addOnEscListener);
-    body.style = ``;
-  });
-};
-
 const popUpRender = (item) => {
+  let popup = new FilmDetail(item);
+
   // Рендеринг Popup
-  render(body, new FilmDetail(item).getElement());
+  render(body, popup.getElement());
+
+  popup.trackClosedPopup();
 
   let commentList = document.querySelector(`.film-details__comments-list`);
 
@@ -72,21 +44,18 @@ const popUpRender = (item) => {
 
   // Чтобы не было двойного скрола
   body.style = `overflow: hidden;`;
-
-  trackClosedPopup();
 };
 
-const renderCards = (data, container, maxAmount = 1) => {
-  let arr = data;
+const renderCards = (cardsArr, container, maxAmount = 1) => {
 
-  if (maxAmount <= cardsAmount.TOTAL) {
-    arr = data.filter((elem) => data.indexOf(elem) < maxAmount);
+  if (maxAmount < cardsAmount.TOTAL) {
+    cardsArr = cards.slice(0, maxAmount);
   }
 
-  arr.forEach((item) => {
+  cardsArr.forEach((item) => {
     let card = new CardsTemplate(item);
 
-    trackOpenedCard(card.getElement(), item);
+    card.trackOpenedCard(card.getElement(), popUpRender, item);
 
     render(container, card.getElement());
   });
@@ -129,21 +98,21 @@ if (cardsAmount.TOTAL < 1) {
     render(filmsList, new LoadMoreBtn().getElement());
     const loadMoreBtn = document.querySelector(`.films-list__show-more`);
 
-    // Рендеринг карточиек
-    loadMoreBtn.addEventListener(`click`, () => {
-      let arr = cards.filter((element) => cards.indexOf(element) + 1 <= renderIndex.max && cards.indexOf(element) + 1 > renderIndex.min);
+  // Рендеринг карточек
+  loadMoreBtn.addEventListener(`click`, () => {
+    let arr = cards.filter((element) => cards.indexOf(element) + 1 <= renderIndex.max && cards.indexOf(element) + 1 > renderIndex.min);
 
       arr.forEach((item) => {
         let card = new CardsTemplate(item);
 
-        trackOpenedCard(card.getElement(), item);
+      card.trackOpenedCard(card.getElement(), popUpRender, item);
 
         render(filmsListContainer, card.getElement());
       });
 
-      if (renderIndex.max >= cardsAmount.TOTAL || renderIndex.max % cardsAmount.TOTAL === 0) {
-        loadMoreBtn.remove();
-      }
+    if (renderIndex.max >= cardsAmount.TOTAL || renderIndex.max % cardsAmount.TOTAL === 0) {
+      unrender(loadMoreBtn);
+    }
 
       renderIndex.min = renderIndex.max;
       renderIndex.max += cardsAmount.DEFAULT;
