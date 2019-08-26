@@ -26,8 +26,6 @@ const body = document.querySelector(`body`);
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
 const footerStats = document.querySelector(`.footer__statistics`);
-const removeOnEscListener = () => document.removeEventListener(`keydown`, onEscKeyDown);
-const addOnEscListener = () => document.addEventListener(`keydown`, onEscKeyDown);
 
 const popUpRender = (item) => {
   let popup = new FilmDetail(item);
@@ -98,21 +96,21 @@ if (cardsAmount.TOTAL < 1) {
     render(filmsList, new LoadMoreBtn().getElement());
     const loadMoreBtn = document.querySelector(`.films-list__show-more`);
 
-  // Рендеринг карточек
-  loadMoreBtn.addEventListener(`click`, () => {
-    let arr = cards.filter((element) => cards.indexOf(element) + 1 <= renderIndex.max && cards.indexOf(element) + 1 > renderIndex.min);
+    // Рендеринг карточек
+    loadMoreBtn.addEventListener(`click`, () => {
+      let arr = cards.filter((element) => cards.indexOf(element) + 1 <= renderIndex.max && cards.indexOf(element) + 1 > renderIndex.min);
 
       arr.forEach((item) => {
         let card = new CardsTemplate(item);
 
-      card.trackOpenedCard(card.getElement(), popUpRender, item);
+        card.trackOpenedCard(card.getElement(), popUpRender, item);
 
         render(filmsListContainer, card.getElement());
       });
 
-    if (renderIndex.max >= cardsAmount.TOTAL || renderIndex.max % cardsAmount.TOTAL === 0) {
-      unrender(loadMoreBtn);
-    }
+      if (renderIndex.max >= cardsAmount.TOTAL || renderIndex.max % cardsAmount.TOTAL === 0) {
+        unrender(loadMoreBtn);
+      }
 
       renderIndex.min = renderIndex.max;
       renderIndex.max += cardsAmount.DEFAULT;
