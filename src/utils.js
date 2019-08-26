@@ -13,13 +13,15 @@ const CALENDAR = {
   '12': `December`,
 };
 const TEN_YEAR_IN_MS = 283996800000;
-export const onEscKeyDown = (evt) => {
+const onEscKeyDown = (evt) => {
   if (evt.key === `Escape` || evt.key === `Esc`) {
     unrender(document.querySelector(`.film-details`));
     document.querySelector(`body`).style = ``;
-    document.removeEventListener(`keydown`, onEscKeyDown);
+    removeOnEscListener();
   }
 };
+export const removeOnEscListener = () => document.removeEventListener(`keydown`, onEscKeyDown);
+export const addOnEscListener = () => document.addEventListener(`keydown`, onEscKeyDown);
 export const createElement = (template) => {
   const newElement = document.createElement(`div`);
 

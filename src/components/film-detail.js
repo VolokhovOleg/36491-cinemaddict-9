@@ -1,4 +1,4 @@
-import {createElement, checkWordEnding, checkChecked, convertMonth, onEscKeyDown, unrender} from './../utils.js';
+import {createElement, checkWordEnding, checkChecked, convertMonth, removeOnEscListener, addOnEscListener, unrender} from './../utils.js';
 
 export class FilmDetail {
   constructor({poster, title, ratingSystem, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) {
@@ -148,13 +148,18 @@ export class FilmDetail {
   }
 
   trackClosedPopup() {
-    document.addEventListener(`keydown`, onEscKeyDown);
+    let commentArea = document.querySelector(`.film-details__comment-input`);
+    addOnEscListener();
+
+    commentArea.addEventListener(`focus`, removeOnEscListener);
+    commentArea.addEventListener(`blur`, addOnEscListener);
 
     document.querySelector(`.film-details__close-btn`).addEventListener(`click`, () => {
       unrender(document.querySelector(`.film-details`));
-      document.removeEventListener(`keydown`, onEscKeyDown);
+      removeOnEscListener();
+      commentArea.removeEventListener(`focus`, removeOnEscListener);
+      commentArea.removeEventListener(`blur`, addOnEscListener);
       document.querySelector(`body`).style = ``;
     });
   }
 }
-
