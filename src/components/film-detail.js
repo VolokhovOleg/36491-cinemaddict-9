@@ -152,7 +152,7 @@ export class FilmDetail {
     addOnEscListener();
 
     commentArea.addEventListener(`focus`, removeOnEscListener);
-    commentArea.addEventListener(`blur`, addOnEscListener)
+    commentArea.addEventListener(`blur`, addOnEscListener);
 
     document.querySelector(`.film-details__close-btn`).addEventListener(`click`, () => {
       unrender(document.querySelector(`.film-details`));
@@ -163,4 +163,3 @@ export class FilmDetail {
     });
   }
 }
-
