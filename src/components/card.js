@@ -45,4 +45,10 @@ export class CardsTemplate {
   </form>
 </article>`;
   }
+
+  trackOpenedCard(card, cb, item) {
+    return card
+      .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
+      .forEach((selector) => selector.addEventListener(`click`, () => cb(item)));
+  }
 }

@@ -13,7 +13,13 @@ const CALENDAR = {
   '12': `December`,
 };
 const TEN_YEAR_IN_MS = 283996800000;
-
+export const onEscKeyDown = (evt) => {
+  if (evt.key === `Escape` || evt.key === `Esc`) {
+    unrender(document.querySelector(`.film-details`));
+    document.querySelector(`body`).style = ``;
+    document.removeEventListener(`keydown`, onEscKeyDown);
+  }
+};
 export const createElement = (template) => {
   const newElement = document.createElement(`div`);
 
@@ -23,6 +29,12 @@ export const createElement = (template) => {
 
 export const render = (container, element) => {
   container.append(element);
+};
+
+export const unrender = (element) => {
+  if (element) {
+    element.remove();
+  }
 };
 
 export const checkWordEnding = (commentsAmount) => commentsAmount !== 1 ? `s` : ``;
