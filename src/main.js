@@ -1,7 +1,6 @@
 import {Search} from './components/search.js';
 import {Rank} from './components/rank.js';
 import {Menu} from './components/menu.js';
-import {Sort} from './components/sort.js';
 import {generateFilters, generateFilm} from './data.js';
 import {render, getRandomInt} from './utils.js';
 import {PageController} from './controllers/page-controller.js';
@@ -19,9 +18,6 @@ render(header, new Rank().getElement());
 
 // Рендеринг «Меню»
 render(main, new Menu(filters).getElement());
-
-// Рендеринг «Сортировки»
-render(main, new Sort().getElement());
 
 const pageController = new PageController(main, cards);
 

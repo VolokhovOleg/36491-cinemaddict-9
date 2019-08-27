@@ -9,6 +9,7 @@ import {TopRated} from '../components/top-rated.js';
 import {MostCommented} from '../components/most-commented.js';
 import {FilmDetail} from '../components/film-detail.js';
 import {Comment} from '../components/comment.js';
+import {Sort} from '../components/sort.js';
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -24,42 +25,77 @@ export class PageController {
   init() {
     const totalCardsAmount = this._cards.length;
 
-    const popUpRender = (item) => {
-      let popup = new FilmDetail(item);
-
-      // Рендеринг Popup
-      render(body, popup.getElement());
-
-      popup.trackClosedPopup();
-
-      let commentList = document.querySelector(`.film-details__comments-list`);
-
-      // Рендеринг комментариев
-      item.comments.map((comment) => render(commentList, new Comment(comment).getElement()));
-
-      // Чтобы не было двойного скрола
-      body.style = `overflow: hidden;`;
-    };
-    const footerStats = document.querySelector(`.footer__statistics`);
-    const body = document.querySelector(`body`);
-
-    const renderCards = (cardsArr, container, maxAmount = 1) => {
-
-      if (maxAmount < totalCardsAmount) {
-        cardsArr = this._cards.slice(0, maxAmount);
-      }
-
-      cardsArr.forEach((item) => {
-        let card = new CardsTemplate(item);
-
-        card.trackOpenedCard(card.getElement(), popUpRender, item);
-
-        render(container, card.getElement());
-      });
-    };
     if (totalCardsAmount < 1) {
       render(this._container, new NoFilms().getElement());
     } else {
+      let sortedArr = this._cards;
+      const body = document.querySelector(`body`);
+      const main = document.querySelector(`.main`);
+      const footerStats = document.querySelector(`.footer__statistics`);
+
+      const popUpRender = (item) => {
+        let popup = new FilmDetail(item);
+
+        // Рендеринг Popup
+        render(body, popup.getElement());
+
+        popup.trackClosedPopup();
+
+        let commentList = document.querySelector(`.film-details__comments-list`);
+
+        // Рендеринг комментариев
+        item.comments.map((comment) => render(commentList, new Comment(comment).getElement()));
+
+        // Чтобы не было двойного скрола
+        body.style = `overflow: hidden;`;
+      };
+
+      const renderCards = (cardsArr, container, maxAmount = 1) => {
+
+        if (maxAmount < totalCardsAmount) {
+          cardsArr = sortedArr.slice(0, maxAmount);
+        }
+
+        cardsArr.forEach((item) => {
+          let card = new CardsTemplate(item);
+
+          card.trackOpenedCard(card.getElement(), popUpRender, item);
+
+          render(container, card.getElement());
+        });
+      };
+
+      // Рендеринг «Сортировки»
+      const sortPanel = new Sort();
+      render(main, sortPanel.getElement());
+      const sortArr = (arr) => arr.sort((a, b) => a.releaseDate - b.releaseDate);
+      const makeNewCardOrder = (arr) => {
+        let filmsMarkUp = document.querySelectorAll(`.film-card`);
+        sortArr(arr);
+
+        filmsMarkUp.forEach((item) => {
+          unrender(item);
+        });
+
+        renderCards(sortedArr, filmsListContainer, cardsAmount.DEFAULT);
+      };
+
+      let links = document.querySelectorAll(`.sort__button`);
+
+      links.forEach((link) => {
+        link.addEventListener(`click`, (evt) => {
+          evt.preventDefault();
+
+          links.forEach((elem) => {
+            elem.classList.remove(`sort__button--active`);
+          });
+
+          link.classList.add(`sort__button--active`);
+
+          makeNewCardOrder(sortedArr);
+        });
+      });
+
       // Рендеринг «Контент»
       render(this._container, new FilmsContainer().getElement());
       const filmsContainer = document.querySelector(`.films`);
@@ -85,7 +121,7 @@ export class PageController {
 
         // Рендеринг карточек
         loadMoreBtn.addEventListener(`click`, () => {
-          let arr = this._cards.filter((element) => this._cards.indexOf(element) + 1 <= renderIndex.max && this._cards.indexOf(element) + 1 > renderIndex.min);
+          let arr = sortedArr.filter((element) => sortedArr.indexOf(element) + 1 <= renderIndex.max && sortedArr.indexOf(element) + 1 > renderIndex.min);
 
           arr.forEach((item) => {
             let card = new CardsTemplate(item);
@@ -117,13 +153,13 @@ export class PageController {
       const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
 
       // Рендеринг «Карточек фильма»
-      renderCards(this._cards, filmsListContainer, cardsAmount.DEFAULT);
+      renderCards(sortedArr, filmsListContainer, cardsAmount.DEFAULT);
 
       // Рендеринг «Карточек фильма» для Top Rated
-      renderCards(this._cards, filmsListExtra[0].querySelector(`.films-list__container`), cardsAmount.EXTRA);
+      renderCards(sortedArr, filmsListExtra[0].querySelector(`.films-list__container`), cardsAmount.EXTRA);
 
       // Рендеринг «Карточек фильма» для Most Commented
-      renderCards(this._cards, filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);
+      renderCards(sortedArr, filmsListExtra[1].querySelector(`.films-list__container`), cardsAmount.EXTRA);
     }
   }
 }
