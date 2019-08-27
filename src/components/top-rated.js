@@ -1,18 +1,6 @@
-import {createElement} from './../utils.js';
+import {AbstractComponent} from './abstract-component.js';
 
-export class TopRated {
-  constructor() {
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
+export class TopRated extends AbstractComponent {
   getTemplate() {
     return `<section class="films-list--extra">
   <h2 class="films-list__title">Top rated</h2>

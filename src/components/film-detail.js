@@ -1,7 +1,9 @@
-import {createElement, checkWordEnding, checkChecked, convertMonth, removeOnEscListener, addOnEscListener, unrender} from './../utils.js';
+import {checkWordEnding, checkChecked, convertMonth, addOnEscListener, removeOnEscListener, unrender} from './../utils.js';
+import {AbstractComponent} from './abstract-component.js';
 
-export class FilmDetail {
+export class FilmDetail extends AbstractComponent {
   constructor({poster, title, ratingSystem, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) {
+    super();
     this._poster = poster;
     this._title = title;
     this._ratingSystem = ratingSystem;
@@ -18,15 +20,6 @@ export class FilmDetail {
     this._isInWatchList = isInWatchList;
     this._isWatched = isWatched;
     this._isFavorite = isFavorite;
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
   }
 
   getTemplate() {
@@ -149,6 +142,7 @@ export class FilmDetail {
 
   trackClosedPopup() {
     let commentArea = document.querySelector(`.film-details__comment-input`);
+
     addOnEscListener();
 
     commentArea.addEventListener(`focus`, removeOnEscListener);

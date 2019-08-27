@@ -1,20 +1,12 @@
-import {createElement} from './../utils.js';
+import {AbstractComponent} from './abstract-component.js';
 
-export class Comment {
+export class Comment extends AbstractComponent {
   constructor(comment) {
+    super();
     this._emoji = comment.emoji;
     this._content = comment.content;
     this._author = comment.author;
     this._date = comment.date;
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
   }
 
   getTemplate() {

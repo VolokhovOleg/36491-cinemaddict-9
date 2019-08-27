@@ -1,19 +1,11 @@
-import {createElement} from './../utils.js';
+import {AbstractComponent} from './abstract-component.js';
 
-export class Menu {
+export class Menu extends AbstractComponent {
   constructor({watchList, history, favorite}) {
+    super();
     this._watchList = watchList;
     this._history = history;
     this._favorite = favorite;
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
   }
 
   getTemplate() {
