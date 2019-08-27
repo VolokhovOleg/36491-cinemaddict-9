@@ -1,4 +1,4 @@
-import {checkWordEnding, checkChecked, convertMonth, addOnEscListener, removeOnEscListener, unrender} from './../utils.js';
+import {checkWordEnding, checkChecked, convertMonth, unrender} from './../utils.js';
 import {AbstractComponent} from './abstract-component.js';
 
 export class FilmDetail extends AbstractComponent {
@@ -142,6 +142,21 @@ export class FilmDetail extends AbstractComponent {
 
   trackClosedPopup() {
     let commentArea = document.querySelector(`.film-details__comment-input`);
+    let popup = document.querySelector(`.film-details`);
+    let body = document.querySelector(`body`);
+
+    const onEscKeyDown = (evt) => {
+      if (evt.key === `Escape` || evt.key === `Esc`) {
+        unrender(popup);
+        this.removeElement();
+        body.style = ``;
+        document.removeEventListener(`keydown`, onEscKeyDown);
+        document.removeEventListener(`focus`, removeOnEscListener);
+        document.removeEventListener(`blur`, addOnEscListener);
+      }
+    };
+    const removeOnEscListener = () => document.removeEventListener(`keydown`, onEscKeyDown);
+    const addOnEscListener = () => document.addEventListener(`keydown`, onEscKeyDown);
 
     addOnEscListener();
 
@@ -149,11 +164,12 @@ export class FilmDetail extends AbstractComponent {
     commentArea.addEventListener(`blur`, addOnEscListener);
 
     document.querySelector(`.film-details__close-btn`).addEventListener(`click`, () => {
-      unrender(document.querySelector(`.film-details`));
+      unrender(popup);
       removeOnEscListener();
+      this.removeElement();
       commentArea.removeEventListener(`focus`, removeOnEscListener);
       commentArea.removeEventListener(`blur`, addOnEscListener);
-      document.querySelector(`body`).style = ``;
+      body.style = ``;
     });
   }
 }

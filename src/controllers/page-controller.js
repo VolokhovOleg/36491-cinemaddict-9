@@ -10,6 +10,11 @@ import {MostCommented} from '../components/most-commented.js';
 import {FilmDetail} from '../components/film-detail.js';
 import {Comment} from '../components/comment.js';
 
+const cardsAmount = {
+  DEFAULT: 5,
+  EXTRA: 2,
+};
+
 export class PageController {
   constructor(container, cards) {
     this._container = container;
@@ -17,11 +22,8 @@ export class PageController {
   }
 
   init() {
-    const cardsAmount = {
-      TOTAL: this._cards.length,
-      DEFAULT: 5,
-      EXTRA: 2,
-    };
+    const totalCardsAmount = this._cards.length;
+
     const popUpRender = (item) => {
       let popup = new FilmDetail(item);
 
@@ -43,7 +45,7 @@ export class PageController {
 
     const renderCards = (cardsArr, container, maxAmount = 1) => {
 
-      if (maxAmount < cardsAmount.TOTAL) {
+      if (maxAmount < totalCardsAmount) {
         cardsArr = this._cards.slice(0, maxAmount);
       }
 
@@ -55,7 +57,7 @@ export class PageController {
         render(container, card.getElement());
       });
     };
-    if (cardsAmount.TOTAL < 1) {
+    if (totalCardsAmount < 1) {
       render(this._container, new NoFilms().getElement());
     } else {
       // Рендеринг «Контент»
@@ -63,21 +65,22 @@ export class PageController {
       const filmsContainer = document.querySelector(`.films`);
 
       // Рендеринг количества фильмов в сервисе
-      render(footerStats, new FooterStats(cardsAmount.TOTAL).getElement());
+      render(footerStats, new FooterStats(totalCardsAmount).getElement());
 
       // Рендеринг «Котейнер для карточек»
       render(filmsContainer, new FilmsList().getElement());
       const filmsListContainer = document.querySelector(`.films-list__container`);
       const filmsList = document.querySelector(`.films-list`);
 
-      if (cardsAmount.TOTAL > cardsAmount.DEFAULT) {
+      if (totalCardsAmount > cardsAmount.DEFAULT) {
         let renderIndex = {
           min: 5,
           max: 10
         };
 
         // Рендеринг «Show more»
-        render(filmsList, new LoadMoreBtn().getElement());
+        const loadMoreBtnTemplate = new LoadMoreBtn();
+        render(filmsList, loadMoreBtnTemplate.getElement());
         const loadMoreBtn = document.querySelector(`.films-list__show-more`);
 
         // Рендеринг карточек
@@ -92,16 +95,16 @@ export class PageController {
             render(filmsListContainer, card.getElement());
           });
 
-          if (renderIndex.max >= cardsAmount.TOTAL || renderIndex.max % cardsAmount.TOTAL === 0) {
+          if (renderIndex.max >= totalCardsAmount || renderIndex.max % totalCardsAmount === 0) {
             unrender(loadMoreBtn);
-            loadMoreBtn.removeElement();
+            loadMoreBtnTemplate.removeElement();
           }
 
           renderIndex.min = renderIndex.max;
           renderIndex.max += cardsAmount.DEFAULT;
 
-          if (renderIndex.max > cardsAmount.TOTAL) {
-            renderIndex.max -= renderIndex.max - cardsAmount.TOTAL;
+          if (renderIndex.max > totalCardsAmount) {
+            renderIndex.max -= renderIndex.max - totalCardsAmount;
           }
         });
       }
