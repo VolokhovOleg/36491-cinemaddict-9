@@ -4,7 +4,7 @@ import {Menu} from './components/menu.js';
 import {Sort} from './components/sort.js';
 import {generateFilters, generateFilm} from './data.js';
 import {render, getRandomInt} from './utils.js';
-import {PageController} from './controllers/PageController.js';
+import {PageController} from './controllers/page-controller.js';
 
 const cards = new Array(getRandomInt(0, 18)).fill({}).map(generateFilm);
 const filters = generateFilters();
