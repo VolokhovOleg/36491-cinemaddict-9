@@ -28,7 +28,7 @@ export class PageController {
     if (totalCardsAmount < 1) {
       render(this._container, new NoFilms().getElement());
     } else {
-      let sortedArr = this._cards;
+      let sortedArr = this._cards.map((item) => item);
       const body = document.querySelector(`body`);
       const main = document.querySelector(`.main`);
       const footerStats = document.querySelector(`.footer__statistics`);
@@ -68,10 +68,14 @@ export class PageController {
       // Рендеринг «Сортировки»
       const sortPanel = new Sort();
       render(main, sortPanel.getElement());
-      const sortArr = (arr) => arr.sort((a, b) => a.releaseDate - b.releaseDate);
-      const makeNewCardOrder = (arr) => {
+      const sortArr = (arr, sortAttr) => arr.sort((a, b) => a[sortAttr] - b[sortAttr]);
+      const makeNewCardOrder = (arr, sortAttr) => {
+        if (sortAttr === `default`) {
+          sortedArr = this._cards.map((item) => item);
+        } else {
+          sortArr(arr, sortAttr);
+        }
         let filmsMarkUp = document.querySelectorAll(`.film-card`);
-        sortArr(arr);
 
         filmsMarkUp.forEach((item) => {
           unrender(item);
@@ -86,13 +90,16 @@ export class PageController {
         link.addEventListener(`click`, (evt) => {
           evt.preventDefault();
 
-          links.forEach((elem) => {
-            elem.classList.remove(`sort__button--active`);
-          });
+          if (!link.classList.contains(`sort__button--active`)) {
+            links.forEach((elem) => {
+              elem.classList.remove(`sort__button--active`);
+            });
 
-          link.classList.add(`sort__button--active`);
+            link.classList.add(`sort__button--active`);
+            let sortAttr = link.getAttribute(`data-sort`);
 
-          makeNewCardOrder(sortedArr);
+            makeNewCardOrder(sortedArr, sortAttr);
+          }
         });
       });
 
