@@ -1,7 +1,9 @@
-import {createElement, checkWordEnding, checkChecked, convertMonth, onEscKeyDown, unrender} from './../utils.js';
+import {checkWordEnding, checkChecked, convertMonth, unrender} from './../utils.js';
+import {AbstractComponent} from './abstract-component.js';
 
-export class FilmDetail {
+export class FilmDetail extends AbstractComponent {
   constructor({poster, title, ratingSystem, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) {
+    super();
     this._poster = poster;
     this._title = title;
     this._ratingSystem = ratingSystem;
@@ -18,15 +20,6 @@ export class FilmDetail {
     this._isInWatchList = isInWatchList;
     this._isWatched = isWatched;
     this._isFavorite = isFavorite;
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
   }
 
   getTemplate() {
@@ -148,13 +141,35 @@ export class FilmDetail {
   }
 
   trackClosedPopup() {
-    document.addEventListener(`keydown`, onEscKeyDown);
+    let commentArea = document.querySelector(`.film-details__comment-input`);
+    let popup = document.querySelector(`.film-details`);
+    let body = document.querySelector(`body`);
+
+    const onEscKeyDown = (evt) => {
+      if (evt.key === `Escape` || evt.key === `Esc`) {
+        unrender(popup);
+        this.removeElement();
+        body.style = ``;
+        document.removeEventListener(`keydown`, onEscKeyDown);
+        document.removeEventListener(`focus`, removeOnEscListener);
+        document.removeEventListener(`blur`, addOnEscListener);
+      }
+    };
+    const removeOnEscListener = () => document.removeEventListener(`keydown`, onEscKeyDown);
+    const addOnEscListener = () => document.addEventListener(`keydown`, onEscKeyDown);
+
+    addOnEscListener();
+
+    commentArea.addEventListener(`focus`, removeOnEscListener);
+    commentArea.addEventListener(`blur`, addOnEscListener);
 
     document.querySelector(`.film-details__close-btn`).addEventListener(`click`, () => {
-      unrender(document.querySelector(`.film-details`));
-      document.removeEventListener(`keydown`, onEscKeyDown);
-      document.querySelector(`body`).style = ``;
+      unrender(popup);
+      removeOnEscListener();
+      this.removeElement();
+      commentArea.removeEventListener(`focus`, removeOnEscListener);
+      commentArea.removeEventListener(`blur`, addOnEscListener);
+      body.style = ``;
     });
   }
 }
-

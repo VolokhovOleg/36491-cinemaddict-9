@@ -1,17 +1,9 @@
-import {createElement} from './../utils.js';
+import {AbstractComponent} from './abstract-component.js';
 
-export class FooterStats {
+export class FooterStats extends AbstractComponent {
   constructor(allMovies) {
+    super();
     this._allMovies = allMovies;
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
   }
 
   getTemplate() {

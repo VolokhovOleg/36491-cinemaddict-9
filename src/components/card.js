@@ -1,9 +1,11 @@
-import {checkWordEnding, cutText, createElement} from './../utils.js';
+import {checkWordEnding, cutText} from './../utils.js';
+import {AbstractComponent} from './abstract-component.js';
 
 const checkControls = (isCheck = false) => isCheck ? `film-card__controls-item--active` : ``;
 
-export class CardsTemplate {
+export class CardsTemplate extends AbstractComponent {
   constructor({title, rating, releaseDate, runningTime, genres, poster, description, comments, isInWishList, isWatched, isFavorite}) {
+    super();
     this._title = title;
     this._rating = rating;
     this._releaseDate = releaseDate;
@@ -15,15 +17,6 @@ export class CardsTemplate {
     this._isInWishList = isInWishList;
     this._isWatched = isWatched;
     this._isFavorite = isFavorite;
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
   }
 
   getTemplate() {
