@@ -61,6 +61,7 @@ export class PageController {
             filmsListContainer,
             cardsAmount.DEFAULT,
             this.onDataChange,
+            this.onChangeView,
             totalCardsAmount,
             sortedArr);
       };
