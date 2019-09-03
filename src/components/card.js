@@ -1,13 +1,7 @@
 import {checkWordEnding, cutText} from './../utils.js';
 import {AbstractComponent} from './abstract-component.js';
 
-const checkControls = (isCheck) => {
-  if (isCheck) {
-    return `film-card__controls-item--active`;
-  } else {
-    return ``;
-  }
-};
+const checkControls = (isCheck) => isCheck ? `film-card__controls-item--active` : ``;
 
 export class CardsTemplate extends AbstractComponent {
   constructor({title, rating, releaseDate, runningTime, genres, poster, description, comments, isInWatchList, isWatched, isFavorite, id}) {

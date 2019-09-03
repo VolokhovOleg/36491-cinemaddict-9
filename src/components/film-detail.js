@@ -1,8 +1,9 @@
 import {checkWordEnding, checkChecked, convertMonth} from './../utils.js';
 import {AbstractComponent} from './abstract-component.js';
 
-const isCustomRate = (isWatched, customRate) => isWatched ? `<p class="film-details__user-rating">Your rate ${customRate}</p>` : ``;
-const isRatingBlockRender = (isWatched, poster, title) => isWatched ? `<div class="form-details__middle-container">
+const isCustomRate = (customRate) => `<p class="film-details__user-rating">Your rate ${customRate}</p>`;
+
+const isRatingBlock = (poster, title) => `<div class="form-details__middle-container">
     <section class="film-details__user-rating-wrap">
       <div class="film-details__user-rating-controls">
         <button class="film-details__watched-reset" type="button">Undo</button>
@@ -49,7 +50,7 @@ const isRatingBlockRender = (isWatched, poster, title) => isWatched ? `<div clas
         </section>
       </div>
     </section>
-  </div>` : ``;
+  </div>`;
 
 export class FilmDetail extends AbstractComponent {
   constructor({emoji, poster, title, ratingSystem, customerRate, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) {
@@ -97,7 +98,7 @@ export class FilmDetail extends AbstractComponent {
 
             <div class="film-details__rating">
               <p class="film-details__total-rating">${this._rating}</p>
-              ${isCustomRate(this._isWatched, this._customerRate)}
+              ${this._isWatched ? isCustomRate(this._customerRate) : ``}
             </div>
           </div>
 
@@ -151,7 +152,7 @@ export class FilmDetail extends AbstractComponent {
         <label for="favorite" class="film-details__control-label film-details__control-label--favorite">Add to favorites</label>
       </section>
     </div>
-    ${isRatingBlockRender(this._isWatched, this._poster, this._title)}
+    ${this._isWatched ? isRatingBlock(this._poster, this._title) : ``}
     <div class="form-details__bottom-container">
       <section class="film-details__comments-wrap">
         <h3 class="film-details__comments-title">Comment${checkWordEnding(this._comments.length)} <span class="film-details__comments-count">${this._comments.length}</span></h3>

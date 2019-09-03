@@ -56,14 +56,7 @@ export class PageController {
         filmsMarkUp.forEach((item) => unrender(item));
 
         // Рендеринг карточки фильмов
-        this.renderCards(
-            arr,
-            filmsListContainer,
-            cardsAmount.DEFAULT,
-            this.onDataChange,
-            this.onChangeView,
-            totalCardsAmount,
-            sortedArr);
+        this.renderCards(arr);
       };
 
       // Навешиваю лисенеры на кнопки сортировки
@@ -95,7 +88,6 @@ export class PageController {
 
       // Рендеринг «Котейнер для карточек»
       render(filmsContainer, new FilmsList().getElement());
-      const filmsListContainer = document.querySelector(`.films-list__container`);
       const filmsList = document.querySelector(`.films-list`);
 
       if (totalCardsAmount > cardsAmount.DEFAULT) {
@@ -112,7 +104,7 @@ export class PageController {
         loadMoreBtn.addEventListener(`click`, () => {
           let arr = sortedArr.filter((element) => sortedArr.indexOf(element) + 1 <= renderIndex.max && sortedArr.indexOf(element) + 1 > renderIndex.min);
 
-          this.renderCards(arr, filmsListContainer, arr.length - 1, this.onDataChange);
+          this.renderCards(arr);
 
           if (renderIndex.max >= totalCardsAmount || renderIndex.max % totalCardsAmount === 0) {
             unrender(loadMoreBtn);
@@ -136,132 +128,27 @@ export class PageController {
       const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
 
       // Рендеринг «Карточек фильма»
-      this.renderCards(
-          sortedArr,
-          filmsListContainer,
-          cardsAmount.DEFAULT,
-          this.onDataChange,
-          this.onChangeView,
-          totalCardsAmount);
-
-      // Рендеринг «Карточек фильма» для Top Rated
-      this.renderCards(
-          sortedArr,
-          filmsListExtra[0].querySelector(`.films-list__container`),
-          cardsAmount.EXTRA,
-          this.onDataChange,
-          this.onChangeView,
-          totalCardsAmount);
-
-      // Рендеринг «Карточек фильма» для Most Commented
-      this.renderCards(
-          sortedArr,
-          filmsListExtra[1].querySelector(`.films-list__container`),
-          cardsAmount.EXTRA,
-          this.onDataChange,
-          this.onChangeView,
-          totalCardsAmount,
-          sortedArr);
+      this.renderCards();
     }
   }
 
   // Рендеринг «Карточек фильма»
-  renderCards(cardsArr, container, maxAmount = 1, onDataChange, onChangeView, totalCardsAmount, sortedArr = cardsArr) {
-    if (maxAmount < totalCardsAmount) {
-      cardsArr = sortedArr.slice(0, maxAmount);
+  renderCards(cardsArr = this._cards) {
+    let maxFilmAmount = this._cards.length;
+
+    if (maxFilmAmount < cardsAmount.DEFAULT) {
+      cardsArr = cardsArr.slice(0, cardsAmount.DEFAULT);
     }
 
     cardsArr.forEach((item) => {
-      let movieController = new MovieController(item, container, onDataChange, onChangeView, this);
+      let movieController = new MovieController(item, this.renderCards);
 
-      this._subscriptions.push(movieController.setDefaultView);
+      // this._subscriptions.push(movieController.setDefaultView);
       movieController.init();
     });
   }
 
-  // Метод onDataChange, который получает на вход обновленные данные
-  onDataChange(newCardData, changedElems, context, popUpRender, isPopupOpen = false, popupContext) {
-    const filmsListContainer = document.querySelector(`.films-list__container`);
-    const filmsMarkUp = document.querySelectorAll(`.film-card`);
-    const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
-
-    // Если попап был закрыт
-    if (!isPopupOpen) {
-
-      // Проверяю какая кнопка на кароточке была нажата и обновляю данные.
-      // Получился хардкод, но лучше не придумал как проверять кнопки :(.
-      const btnClasses = new Set(changedElems.getAttribute(`class`).split(` `));
-      if (btnClasses.has(`film-card__controls-item--active`)) {
-        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
-          newCardData.isInWatchList = false;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
-          newCardData.isWatched = false;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--favorite`)) {
-          newCardData.isFavorite = false;
-        }
-      } else {
-        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
-          newCardData.isInWatchList = true;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
-          newCardData.isWatched = true;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--favorite`)) {
-          newCardData.isFavorite = true;
-        }
-      }
-
-    // Если попап был открыт
-    } else {
-
-      // Обновляю данные
-      newCardData.isInWatchList = changedElems.watchlist;
-      newCardData.isWatched = changedElems.watched;
-      newCardData.isFavorite = changedElems.favorite;
-    }
-
-    // Далее обновляю и удаляю из дома элементы и ренедерю с новыми данными
-    filmsMarkUp.forEach((item) => item.remove());
-
-    if (isPopupOpen) {
-      document.querySelector(`.film-details`).remove();
-      popupContext.popUpRender();
-    }
-
-    context.renderCards(
-        context._cards,
-        filmsListContainer,
-        cardsAmount.DEFAULT,
-        context.onDataChange,
-        context.onChangeView,
-        context._cards.length);
-
-    // Рендеринг «Карточек фильма» для Top Rated
-    context.renderCards(
-        context._cards,
-        filmsListExtra[0].querySelector(`.films-list__container`),
-        cardsAmount.EXTRA,
-        context.onDataChange,
-        context.onChangeView,
-        context._cards.length);
-
-    // Рендеринг «Карточек фильма» для Most Commented
-    context.renderCards(
-        context._cards,
-        filmsListExtra[1].querySelector(`.films-list__container`),
-        cardsAmount.EXTRA,
-        context.onDataChange,
-        context.onChangeView,
-        context._cards.length);
-  }
-
-  onChangeView(pageContext, movieContext) {
-    pageContext._subscriptions.forEach((subscription) => subscription(movieContext));
+  onChangeView() {
+    this._subscriptions.forEach((subscription) => subscription());
   }
 }

@@ -5,29 +5,26 @@ import {CardsTemplate} from '../components/card.js';
 import {Emoji} from "../components/emoji";
 
 export class MovieController {
-  constructor(filmData, container, onDataChange, onChangeView, context) {
+  constructor(filmData, onChangeView, renderCards) {
     this._filmData = filmData;
-    this._container = container;
-    this._onDataChange = onDataChange;
-    this._onChangeView = onChangeView;
-    this._context = context;
     this.popupLink = null;
+    this._renderCards = renderCards;
   }
 
   init() {
     const card = new CardsTemplate(this._filmData);
     const cardTemplate = card.getElement();
+    const filmsListContainer = document.querySelector(`.films-list__container`);
 
     // Рендеринг карточек
-    render(this._container, cardTemplate);
+    render(filmsListContainer, cardTemplate);
     const controlsBtns = cardTemplate.querySelectorAll(`.film-card__controls-item`);
 
     // Лисенеры на кнопки контролов
     controlsBtns.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
-
-        this._onDataChange(this._filmData, btn, this._context);
+        this.onDataChange(this._filmData, btn);
       });
     });
 
@@ -39,9 +36,64 @@ export class MovieController {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
       .forEach((selector) => selector.addEventListener(`click`, () => {
-        this._onChangeView(this._context, this);
         this.popUpRender();
       }));
+  }
+
+  // Метод onDataChange, который получает на вход обновленные данные
+  onDataChange(newCardData, changedElems, popUpRender, isPopupOpen = false) {
+    const filmsMarkUp = document.querySelectorAll(`.film-card`);
+
+    // Если попап был закрыт
+    if (!isPopupOpen) {
+
+      // Проверяю какая кнопка на кароточке была нажата и обновляю данные.
+      // Получился хардкод, но лучше не придумал как проверять кнопки :(.
+      const btnClasses = new Set(changedElems.getAttribute(`class`).split(` `));
+      if (btnClasses.has(`film-card__controls-item--active`)) {
+        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
+          newCardData.isInWatchList = false;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
+          newCardData.isWatched = false;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--favorite`)) {
+          newCardData.isFavorite = false;
+        }
+      } else {
+        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
+          newCardData.isInWatchList = true;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
+          newCardData.isWatched = true;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--favorite`)) {
+          newCardData.isFavorite = true;
+        }
+      }
+
+      // Если попап был открыт
+    } else {
+
+      // Обновляю данные
+      newCardData.isInWatchList = changedElems.watchlist;
+      newCardData.isWatched = changedElems.watched;
+      newCardData.isFavorite = changedElems.favorite;
+    }
+
+    // Далее обновляю и удаляю из дома элементы и ренедерю с новыми данными
+    filmsMarkUp.forEach((item) => item.remove());
+
+    if (isPopupOpen) {
+      document.querySelector(`.film-details`).remove();
+      popUpRender();
+    }
+
+    this._renderCards();
   }
 
   // Рендеринг попапа
@@ -64,13 +116,11 @@ export class MovieController {
           favorite: formData.get(`favorite`) !== null,
         };
 
-        this._onDataChange(
+        this.onDataChange(
             this._filmData,
             entry,
-            this._context,
             this.popUpRender,
-            true,
-            this);
+            true);
       });
     });
 
@@ -89,7 +139,7 @@ export class MovieController {
     this.swapEmoji(popup);
   }
 
-  // етод отслеживаю закрытие попапа
+  // Метод отслеживаю закрытие попапа
   trackClosedPopup(popup) {
     const commentArea = document.querySelector(`.film-details__comment-input`);
     const popupTemplate = document.querySelector(`.film-details`);
@@ -146,10 +196,10 @@ export class MovieController {
     }));
   }
 
-  setDefaultView(context) {
-    if (context.popupLink) {
-      unrender(context.popupLink.getElement());
-      context.popupLink.removeElement();
+  setDefaultView() {
+    if (this.popupLink) {
+      unrender(this.popupLink.getElement());
+      this.popupLink.removeElement();
     }
   }
 }
