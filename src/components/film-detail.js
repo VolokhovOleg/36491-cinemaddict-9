@@ -1,5 +1,6 @@
-import {checkWordEnding, checkChecked, convertMonth} from './../utils.js';
+import {checkWordEnding, checkChecked} from './../utils.js';
 import {AbstractComponent} from './abstract-component.js';
+const moment = require(`moment`);
 
 const isCustomRate = (customRate) => `<p class="film-details__user-rating">Your rate ${customRate}</p>`;
 
@@ -117,7 +118,7 @@ export class FilmDetail extends AbstractComponent {
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Release Date</td>
-              <td class="film-details__cell">${this._releaseDate.getDay()} ${convertMonth(this._releaseDate.getMonth())} ${this._releaseDate.getFullYear()} </td>
+              <td class="film-details__cell">${moment(this._releaseDate).format(`D MMM YY`)}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Runtime</td>

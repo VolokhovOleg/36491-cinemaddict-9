@@ -17,7 +17,16 @@ export class PageController {
     this._container = container;
     this._cards = cards;
     this._Sort = new Sort();
-    this._LoadMoreBtn = new LoadMoreBtn();
+    this._onChangeView = this.onChangeView.bind(this);
+    this._onDataChange = this.onDataChange.bind(this);
+    // Вспомогательный массив для сортировки
+    this._sortedArr = this._cards.map((item) => item);
+    this._extraArr = this._cards.slice(0, 2);
+    this._LoadMoreBtnTemplate = new LoadMoreBtn().getElement();
+    this._renderIndex = {
+      min: 5,
+      max: 10
+    };
     this._subscriptions = [];
   }
 
@@ -30,9 +39,6 @@ export class PageController {
       render(this._container, new NoFilms().getElement());
     } else {
 
-      // Вспомогательный массив для сортировки
-      let sortedArr = this._cards.map((item) => item);
-
       const main = document.querySelector(`.main`);
       const footerStats = document.querySelector(`.footer__statistics`);
 
@@ -44,9 +50,10 @@ export class PageController {
 
       // Функция сортировки отсортированного массива
       const makeNewCardOrder = (arr, sortAttr) => {
-        arr = this._cards.map((item) => item);
+        arr = this._cards;
 
         if (!(sortAttr === `default`)) {
+          arr = this._sortedArr;
           sortArr(arr, sortAttr);
         }
 
@@ -57,6 +64,7 @@ export class PageController {
 
         // Рендеринг карточки фильмов
         this.renderCards(arr);
+        this.refreshLoadMoreBtn();
       };
 
       // Навешиваю лисенеры на кнопки сортировки
@@ -74,7 +82,7 @@ export class PageController {
             link.classList.add(`sort__button--active`);
             let sortAttr = link.getAttribute(`data-sort`);
 
-            makeNewCardOrder(sortedArr, sortAttr);
+            makeNewCardOrder(this._sortedArr, sortAttr);
           }
         });
       });
@@ -91,31 +99,24 @@ export class PageController {
       const filmsList = document.querySelector(`.films-list`);
 
       if (totalCardsAmount > cardsAmount.DEFAULT) {
-        const renderIndex = {
-          min: 5,
-          max: 10
-        };
-
         // Рендеринг «Show more»
-        render(filmsList, this._LoadMoreBtn.getElement());
-        const loadMoreBtn = document.querySelector(`.films-list__show-more`);
+        render(filmsList, this._LoadMoreBtnTemplate);
 
         // Рендеринг карточек
-        loadMoreBtn.addEventListener(`click`, () => {
-          let arr = sortedArr.filter((element) => sortedArr.indexOf(element) + 1 <= renderIndex.max && sortedArr.indexOf(element) + 1 > renderIndex.min);
+        this._LoadMoreBtnTemplate.addEventListener(`click`, () => {
+          let arr = this._sortedArr .filter((element) => this._sortedArr .indexOf(element) + 1 <= this._renderIndex.max && this._sortedArr.indexOf(element) + 1 > this._renderIndex.min);
 
           this.renderCards(arr);
 
-          if (renderIndex.max >= totalCardsAmount || renderIndex.max % totalCardsAmount === 0) {
-            unrender(loadMoreBtn);
-            this._LoadMoreBtn.removeElement();
+          if (this._renderIndex.max >= totalCardsAmount || this._renderIndex.max % totalCardsAmount === 0) {
+            unrender(this._LoadMoreBtnTemplate);
           }
 
-          renderIndex.min = renderIndex.max;
-          renderIndex.max += cardsAmount.DEFAULT;
+          this._renderIndex.min = this._renderIndex.max;
+          this._renderIndex.max += cardsAmount.DEFAULT;
 
-          if (renderIndex.max > totalCardsAmount) {
-            renderIndex.max -= renderIndex.max - totalCardsAmount;
+          if (this._renderIndex.max > totalCardsAmount) {
+            this._renderIndex.max -= this._renderIndex.max - totalCardsAmount;
           }
         });
       }
@@ -125,27 +126,101 @@ export class PageController {
 
       // Рендеринг Котейнера для Most Commented
       render(filmsContainer, new MostCommented().getElement());
-      const filmsListExtra = document.querySelectorAll(`.films-list--extra`);
 
       // Рендеринг «Карточек фильма»
       this.renderCards();
+
+      this._extraCardsContainer = document.querySelectorAll(`.films-list--extra`);
+
+      // Рендеринг «Карточек фильма» для Top Rated
+      this.renderCards(this._extraArr, cardsAmount.EXTRA, this._extraCardsContainer[0].querySelector(`.films-list__container`));
+
+      // Рендеринг «Карточек фильма» для Most Commented
+      this.renderCards(this._extraArr, cardsAmount.EXTRA, this._extraCardsContainer[1].querySelector(`.films-list__container`));
     }
   }
 
   // Рендеринг «Карточек фильма»
-  renderCards(cardsArr = this._cards) {
+  renderCards(cardsArr = this._sortedArr, amount = cardsAmount.DEFAULT, container = document.querySelector(`.films-list__container`)) {
     let maxFilmAmount = this._cards.length;
 
-    if (maxFilmAmount < cardsAmount.DEFAULT) {
-      cardsArr = cardsArr.slice(0, cardsAmount.DEFAULT);
+    if (maxFilmAmount > amount) {
+      cardsArr = cardsArr.slice(0, this._renderIndex.min);
     }
 
     cardsArr.forEach((item) => {
-      let movieController = new MovieController(item, this.renderCards);
+      let movieController = new MovieController(item, container, this._onDataChange, this._onChangeView);
 
-      // this._subscriptions.push(movieController.setDefaultView);
+      this._subscriptions.push(movieController._setDefaultView);
       movieController.init();
     });
+  }
+
+  refreshLoadMoreBtn() {
+    this._renderIndex.max = 10;
+    this._renderIndex.min = 5;
+
+    if (!document.contains(this._LoadMoreBtnTemplate)) {
+      const filmsList = document.querySelector(`.films-list`);
+      render(filmsList, this._LoadMoreBtnTemplate);
+    }
+  }
+
+  // Метод onDataChange, который получает на вход обновленные данные
+  onDataChange(newCardData, changedElems, popUpRender, isPopupOpen = false) {
+    const mainConteiner = document.querySelector(`.films-list__container`);
+    const filmsMarkUp = mainConteiner.querySelectorAll(`.film-card`);
+
+    // Если попап был закрыт
+    if (!isPopupOpen) {
+
+      // Проверяю какая кнопка на кароточке была нажата и обновляю данные.
+      // Получился хардкод, но лучше не придумал как проверять кнопки :(.
+      const btnClasses = new Set(changedElems.getAttribute(`class`).split(` `));
+      if (btnClasses.has(`film-card__controls-item--active`)) {
+        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
+          newCardData.isInWatchList = false;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
+          newCardData.isWatched = false;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--favorite`)) {
+          newCardData.isFavorite = false;
+        }
+      } else {
+        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
+          newCardData.isInWatchList = true;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
+          newCardData.isWatched = true;
+        }
+
+        if (btnClasses.has(`film-card__controls-item--favorite`)) {
+          newCardData.isFavorite = true;
+        }
+      }
+
+      // Если попап был открыт
+    } else {
+
+      // Обновляю данные
+      newCardData.isInWatchList = changedElems.watchlist;
+      newCardData.isWatched = changedElems.watched;
+      newCardData.isFavorite = changedElems.favorite;
+    }
+
+    // Далее обновляю и удаляю из дома элементы и ренедерю с новыми данными
+    filmsMarkUp.forEach((item) => item.remove());
+
+    if (isPopupOpen) {
+      document.querySelector(`.film-details`).remove();
+      popUpRender();
+    }
+
+    this.renderCards();
   }
 
   onChangeView() {

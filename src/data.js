@@ -1,4 +1,4 @@
-import {getRandomInt, generateRandomDate, generateBoolean, generateRunningTime, generateCommentDayString} from './utils';
+import {getRandomInt, generateRandomDate, generateBoolean, generateRunningTime} from './utils';
 
 const generateComments = () => ({
   emoji: [
@@ -19,7 +19,7 @@ const generateComments = () => ({
     `Very very old. Meh`,
     `Almost two hours? Seriously?`,
   ][getRandomInt(0, 3)],
-  date: generateCommentDayString(generateRandomDate().getDay()),
+  date: generateRandomDate(),
 });
 
 export const generateFilm = () => ({

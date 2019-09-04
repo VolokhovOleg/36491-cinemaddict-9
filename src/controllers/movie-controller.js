@@ -2,29 +2,32 @@ import {FilmDetail} from '../components/film-detail.js';
 import {render, unrender} from '../utils.js';
 import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
-import {Emoji} from "../components/emoji";
+import {Emoji} from '../components/emoji.js';
 
 export class MovieController {
-  constructor(filmData, onChangeView, renderCards) {
+  constructor(filmData, container, onDataChange, onChangeView) {
     this._filmData = filmData;
-    this.popupLink = null;
-    this._renderCards = renderCards;
+    this._onDataChange = onDataChange;
+    this._onChangeView = onChangeView;
+    this._popUpRender = this.popUpRender.bind(this);
+    this._setDefaultView = this.setDefaultView.bind(this);
+    this._popup = new FilmDetail(this._filmData);
+    this._container = container;
   }
 
   init() {
     const card = new CardsTemplate(this._filmData);
     const cardTemplate = card.getElement();
-    const filmsListContainer = document.querySelector(`.films-list__container`);
 
     // Рендеринг карточек
-    render(filmsListContainer, cardTemplate);
+    render(this._container, cardTemplate);
     const controlsBtns = cardTemplate.querySelectorAll(`.film-card__controls-item`);
 
     // Лисенеры на кнопки контролов
     controlsBtns.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
-        this.onDataChange(this._filmData, btn);
+        this._onDataChange(this._filmData, btn);
       });
     });
 
@@ -36,73 +39,16 @@ export class MovieController {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
       .forEach((selector) => selector.addEventListener(`click`, () => {
-        this.popUpRender();
+        this._onChangeView();
+        this._popUpRender();
       }));
-  }
-
-  // Метод onDataChange, который получает на вход обновленные данные
-  onDataChange(newCardData, changedElems, popUpRender, isPopupOpen = false) {
-    const filmsMarkUp = document.querySelectorAll(`.film-card`);
-
-    // Если попап был закрыт
-    if (!isPopupOpen) {
-
-      // Проверяю какая кнопка на кароточке была нажата и обновляю данные.
-      // Получился хардкод, но лучше не придумал как проверять кнопки :(.
-      const btnClasses = new Set(changedElems.getAttribute(`class`).split(` `));
-      if (btnClasses.has(`film-card__controls-item--active`)) {
-        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
-          newCardData.isInWatchList = false;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
-          newCardData.isWatched = false;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--favorite`)) {
-          newCardData.isFavorite = false;
-        }
-      } else {
-        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
-          newCardData.isInWatchList = true;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
-          newCardData.isWatched = true;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--favorite`)) {
-          newCardData.isFavorite = true;
-        }
-      }
-
-      // Если попап был открыт
-    } else {
-
-      // Обновляю данные
-      newCardData.isInWatchList = changedElems.watchlist;
-      newCardData.isWatched = changedElems.watched;
-      newCardData.isFavorite = changedElems.favorite;
-    }
-
-    // Далее обновляю и удаляю из дома элементы и ренедерю с новыми данными
-    filmsMarkUp.forEach((item) => item.remove());
-
-    if (isPopupOpen) {
-      document.querySelector(`.film-details`).remove();
-      popUpRender();
-    }
-
-    this._renderCards();
   }
 
   // Рендеринг попапа
   popUpRender() {
     const body = document.querySelector(`body`);
-    const popup = new FilmDetail(this._filmData);
-    this.popupLink = popup;
 
-    render(body, popup.getElement());
+    render(body, this._popup.getElement());
 
     const controlsInputs = document.querySelectorAll(`.film-details__control-input`);
 
@@ -116,16 +62,16 @@ export class MovieController {
           favorite: formData.get(`favorite`) !== null,
         };
 
-        this.onDataChange(
+        this._onDataChange(
             this._filmData,
             entry,
-            this.popUpRender,
+            this._popUpRender,
             true);
       });
     });
 
     // Отслеживаю закрытие попапа
-    this.trackClosedPopup(popup);
+    this.trackClosedPopup(this._popup);
 
     const commentList = document.querySelector(`.film-details__comments-list`);
 
@@ -136,7 +82,7 @@ export class MovieController {
     body.style = `overflow: hidden;`;
 
     // Меняю эмодзи
-    this.swapEmoji(popup);
+    this.swapEmoji(this._popup);
   }
 
   // Метод отслеживаю закрытие попапа
@@ -197,9 +143,9 @@ export class MovieController {
   }
 
   setDefaultView() {
-    if (this.popupLink) {
-      unrender(this.popupLink.getElement());
-      this.popupLink.removeElement();
+    if (document.contains(this._popup.getElement())) {
+      unrender(this._popup.getElement());
+      this._popup.removeElement();
     }
   }
 }
