@@ -1,4 +1,4 @@
-import {getRandomInt, generateRandomDate, generateBoolean, generateRunningTime, generateCommentDayString} from './utils';
+import {getRandomInt, generateRandomDate, generateBoolean, generateRunningTime} from './utils';
 
 const generateComments = () => ({
   emoji: [
@@ -19,10 +19,11 @@ const generateComments = () => ({
     `Very very old. Meh`,
     `Almost two hours? Seriously?`,
   ][getRandomInt(0, 3)],
-  date: generateCommentDayString(generateRandomDate().getDay()),
+  date: generateRandomDate(),
 });
 
 export const generateFilm = () => ({
+  id: getRandomInt(0, 9999999999999),
   director: `Anthony Mann`,
   writers: [`Anne Wigton`, `Heinz Herald`, `Richard Weil`],
   actors: [`Erich von Stroheim`, `Mary Beth Hughes`, `Dan Duryea`],
@@ -35,8 +36,14 @@ export const generateFilm = () => ({
     `images/posters/the-great-flamarion.jpg`,
     `images/posters/the-man-with-the-golden-arm.jpg`,
   ][getRandomInt(0, 6)],
+  emoji: {
+    'grinning': `images/emoji/angry.png`,
+    'neutral-face': `images/emoji/smile.png`,
+    'puke': `images/emoji/puke.png`,
+    'sleeping': `images/emoji/sleeping.png`,
+  },
   isInWatchList: generateBoolean(),
-  isWatched: generateBoolean(),
+  isWatched: false,
   isFavorite: generateBoolean(),
   title: [
     `The Dance of Life`,
@@ -48,6 +55,7 @@ export const generateFilm = () => ({
     `The Man with the Golden Arm`,
   ][getRandomInt(0, 6)],
   rating: Math.floor(Math.random() * 10) / 10 + getRandomInt(0, 8),
+  customerRate: getRandomInt(1, 9),
   releaseDate: generateRandomDate(),
   country: `USA`,
   ratingSystem: `${getRandomInt(0, 18)}+`,

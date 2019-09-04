@@ -1,4 +1,5 @@
 import {AbstractComponent} from './abstract-component.js';
+const moment = require(`moment`);
 
 export class Comment extends AbstractComponent {
   constructor(comment) {
@@ -18,7 +19,7 @@ export class Comment extends AbstractComponent {
     <p class="film-details__comment-text">${this._content}</p>
     <p class="film-details__comment-info">
       <span class="film-details__comment-author">${this._author}</span>
-      <span class="film-details__comment-day">${this._date}</span>
+      <span class="film-details__comment-day">${moment(this._date).startOf(`day`).fromNow()}</span>
       <button class="film-details__comment-delete">Delete</button>
     </p>
   </div>
