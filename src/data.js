@@ -1,6 +1,7 @@
 import {getRandomInt, generateRandomDate, generateBoolean, generateRunningTime} from './utils';
 
 const generateComments = () => ({
+  id: getRandomInt(0, 9999999999999),
   emoji: [
     `images/emoji/angry.png`,
     `images/emoji/puke.png`,

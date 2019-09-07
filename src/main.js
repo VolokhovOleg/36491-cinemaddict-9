@@ -6,8 +6,9 @@ import {render, getRandomInt} from './utils.js';
 import {LoadMoreBtn} from './components/load-more-btn.js';
 import {PageController} from './controllers/page-controller.js';
 import {Sort} from './components/sort.js';
+import {Statistic} from './components/statistic.js';
 
-const cards = new Array(getRandomInt(0, 18)).fill({}).map(generateFilm);
+const cards = new Array(getRandomInt(1, 1)).fill({}).map(generateFilm);
 const filters = generateFilters();
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
@@ -21,6 +22,11 @@ render(header, new Rank().getElement());
 // Рендеринг «Меню»
 render(main, new Menu(filters).getElement());
 
+// Рендеринг Статистики
+render(main, new Statistic().getElement());
+
 const pageController = new PageController(main, cards, Sort, LoadMoreBtn);
 
 pageController.init();
+
+

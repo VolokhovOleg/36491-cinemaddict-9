@@ -4,6 +4,7 @@ const moment = require(`moment`);
 export class Comment extends AbstractComponent {
   constructor(comment) {
     super();
+    this._id = comment.id;
     this._emoji = comment.emoji;
     this._content = comment.content;
     this._author = comment.author;
@@ -20,7 +21,7 @@ export class Comment extends AbstractComponent {
     <p class="film-details__comment-info">
       <span class="film-details__comment-author">${this._author}</span>
       <span class="film-details__comment-day">${moment(this._date).startOf(`day`).fromNow()}</span>
-      <button class="film-details__comment-delete">Delete</button>
+      <button class="film-details__comment-delete" data-id="${this._id}">Delete</button>
     </p>
   </div>
 </li>`;

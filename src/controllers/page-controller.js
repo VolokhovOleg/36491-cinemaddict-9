@@ -99,6 +99,7 @@ export class PageController {
       const filmsList = document.querySelector(`.films-list`);
 
       if (totalCardsAmount > cardsAmount.DEFAULT) {
+
         // Рендеринг «Show more»
         render(filmsList, this._LoadMoreBtnTemplate);
 
@@ -138,6 +139,8 @@ export class PageController {
       // Рендеринг «Карточек фильма» для Most Commented
       this.renderCards(this._extraArr, cardsAmount.EXTRA, this._extraCardsContainer[1].querySelector(`.films-list__container`));
     }
+
+    this.toggleStatisticBlock();
   }
 
   // Рендеринг «Карточек фильма»
@@ -167,46 +170,19 @@ export class PageController {
   }
 
   // Метод onDataChange, который получает на вход обновленные данные
-  onDataChange(newCardData, changedElems, popUpRender, isPopupOpen = false) {
-    const mainConteiner = document.querySelector(`.films-list__container`);
-    const filmsMarkUp = mainConteiner.querySelectorAll(`.film-card`);
+  onDataChange(newCardData, changedElems = null, popUpRender = null, comments = null) {
+    const mainContainer = document.querySelector(`.films-list__container`);
+    const filmsMarkUp = mainContainer.querySelectorAll(`.film-card`);
 
-    // Если попап был закрыт
-    if (!isPopupOpen) {
-
-      // Проверяю какая кнопка на кароточке была нажата и обновляю данные.
-      // Получился хардкод, но лучше не придумал как проверять кнопки :(.
-      const btnClasses = new Set(changedElems.getAttribute(`class`).split(` `));
-      if (btnClasses.has(`film-card__controls-item--active`)) {
-        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
-          newCardData.isInWatchList = false;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
-          newCardData.isWatched = false;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--favorite`)) {
-          newCardData.isFavorite = false;
-        }
+    if (comments) {
+      if (comments.data) {
+        newCardData.comments = [...newCardData.comments, comments.data];
       } else {
-        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
-          newCardData.isInWatchList = true;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
-          newCardData.isWatched = true;
-        }
-
-        if (btnClasses.has(`film-card__controls-item--favorite`)) {
-          newCardData.isFavorite = true;
-        }
+        let commentsTemplate = document.querySelectorAll(`.film-details__comment`);
+        newCardData.comments = newCardData.comments.filter((item) => item.id.toString() !== comments.id);
+        commentsTemplate.forEach((comment) => unrender(comment));
       }
-
-      // Если попап был открыт
     } else {
-
-      // Обновляю данные
       newCardData.isInWatchList = changedElems.watchlist;
       newCardData.isWatched = changedElems.watched;
       newCardData.isFavorite = changedElems.favorite;
@@ -215,8 +191,7 @@ export class PageController {
     // Далее обновляю и удаляю из дома элементы и ренедерю с новыми данными
     filmsMarkUp.forEach((item) => item.remove());
 
-    if (isPopupOpen) {
-      document.querySelector(`.film-details`).remove();
+    if (popUpRender) {
       popUpRender();
     }
 
@@ -225,5 +200,22 @@ export class PageController {
 
   onChangeView() {
     this._subscriptions.forEach((subscription) => subscription());
+  }
+
+  toggleStatisticBlock() {
+    const statsLink = document.querySelectorAll(`.main-navigation__item`);
+    const statisticBlock = document.querySelector(`.statistic`);
+
+    statsLink.forEach((item) => {
+      item.addEventListener(`click`, (evt) => {
+        evt.preventDefault();
+
+        switch (item.getAttribute(`href`)) {
+          case `#stats`:
+            statisticBlock.classList.toggle(`visually-hidden`);
+            break;
+        }
+      });
+    });
   }
 }
