@@ -1,9 +1,8 @@
 import {FilmDetail} from '../components/film-detail.js';
-import {render, unrender} from '../utils.js';
+import {render, unrender, getRandomInt} from '../utils.js';
 import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
-import {generateRandomDate, getRandomInt} from "../utils";
 
 export class MovieController {
   constructor(filmData, container, onDataChange, onChangeView) {
