@@ -160,21 +160,28 @@ export class PageController {
     searchInputResetBtn.addEventListener(`click`, (evt) => {
       evt.preventDefault();
       searchInput.value = ``;
-      const searchController = new SearchController(this._phrase, this._totalCardsAmount, this._sortedArr, this._renderCards);
-
+      const searchController = new SearchController();
       searchController.cancelSearch();
+      this._sortedArr = [...this._cards];
+      this._totalCardsAmount = this._cards.length;
+      this._renderCards(this._cards);
       this.refreshLoadMoreBtn();
     });
 
     searchInput.addEventListener(`input`, () => {
       this._phrase = searchInput.value;
-      const searchController = new SearchController(this._phrase, this._totalCardsAmount, this._sortedArr, this._renderCards);
+      const searchController = new SearchController(this._phrase, this._cards);
 
       if (this._phrase.length >= MIN_PHRASE_LENGTH) {
-        searchController.searchFilm();
+        this._sortedArr = searchController.searchFilm();
+        this._totalCardsAmount = this._sortedArr.length;
+        this._renderCards();
         this.refreshLoadMoreBtn();
       } else if (this._phrase.length === 0) {
         searchController.cancelSearch();
+        this._sortedArr = [...this._cards];
+        this._totalCardsAmount = this._cards.length;
+        this._renderCards(this._cards);
         this.refreshLoadMoreBtn();
       }
     });
@@ -216,8 +223,7 @@ export class PageController {
     if (!document.contains(this._LoadMoreBtnTemplate)) {
       render(filmsList, this._LoadMoreBtnTemplate);
     }
-
-    if (this._renderIndex.max >= this._totalCardsAmount || this._renderIndex.max % this._totalCardsAmount === 0) {
+    if (this._renderIndex.max % this._totalCardsAmount === 0 || this._totalCardsAmount <= this._renderIndex.min) {
       unrender(this._LoadMoreBtnTemplate);
     }
   }

@@ -1,12 +1,10 @@
-import {render, unrender} from "../utils";
-import {NoSearchResult} from "../components/no-search-message";
+import {render, unrender} from '../utils.js';
+import {NoSearchResult} from '../components/no-search-message.js';
 
 export class SearchController {
-  constructor(searchPhrase, totalCardsAmount, cards, renderCards) {
+  constructor(searchPhrase, cards) {
     this._cards = cards;
-    this._totalCardsAmount = totalCardsAmount;
     this._searchPhrase = searchPhrase;
-    this._renderCards = renderCards;
   }
 
   // Метод поиска фильма
@@ -20,24 +18,25 @@ export class SearchController {
     const noSearchResultMessage = document.querySelector(`.no-result`);
 
     let pattern = new RegExp(this._searchPhrase, `i`);
-    let searchedCards = this._cards.filter((element) => pattern.exec(element.title) !== null);
-    this._totalCardsAmount = searchedCards.length;
-    this._renderCards(searchedCards);
 
     mainNavigation.classList.add(`visually-hidden`);
     sort.classList.add(`visually-hidden`);
     searchResult.classList.remove(`visually-hidden`);
     unrender(noSearchResultMessage);
 
-    if (this._totalCardsAmount === 0) {
+    extraCardsContainer.forEach((item) => item.classList.add(`visually-hidden`));
+
+    const searchResultCount = searchResult.querySelector(`.result__count`);
+    let arr = this._cards.filter((element) => pattern.exec(element.title) !== null);
+
+    if (arr.length === 0) {
       render(filmsList, new NoSearchResult().getElement());
       filmsListContainer.classList.add(`visually-hidden`);
     }
 
-    extraCardsContainer.forEach((item) => item.classList.add(`visually-hidden`));
+    searchResultCount.textContent = arr.length;
 
-    const searchResultCount = searchResult.querySelector(`.result__count`);
-    searchResultCount.textContent = this._totalCardsAmount;
+    return arr;
   }
 
   // Метод отмены поиска
@@ -48,10 +47,6 @@ export class SearchController {
     const filmsListContainer = document.querySelector(`.films-list__container`);
     const extraCardsContainer = document.querySelectorAll(`.films-list--extra`);
     const noSearchResultMessage = document.querySelector(`.no-result`);
-
-    let searchedCards = this._cards;
-    this._totalCardsAmount = searchedCards.length;
-    this._renderCards(searchedCards);
 
     mainNavigation.classList.remove(`visually-hidden`);
     sort.classList.remove(`visually-hidden`);

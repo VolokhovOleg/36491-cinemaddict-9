@@ -9,7 +9,7 @@ import {Sort} from './components/sort.js';
 import {Statistic} from './components/statistic.js';
 import {SearchResult} from './components/search-result.js';
 
-const cards = new Array(getRandomInt(0, 18)).fill({}).map(generateFilm);
+const cards = new Array(getRandomInt(18, 38)).fill({}).map(generateFilm);
 const filters = generateFilters();
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
@@ -20,7 +20,7 @@ render(header, new Search().getElement());
 // Рендеринг «Звание пользователя»
 render(header, new Rank().getElement());
 
-// Рендеринг «Меню»
+// Рендеринг «Меню»g
 render(main, new Menu(filters).getElement());
 
 // Рендеринг Статистики
