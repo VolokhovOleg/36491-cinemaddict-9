@@ -7,6 +7,8 @@ import {TopRated} from '../components/top-rated.js';
 import {MostCommented} from '../components/most-commented.js';
 import {MovieController} from './movie-controller.js';
 import {SearchController} from './search-controller.js';
+import {StatisticController} from "./statistic-controller";
+import {_} from "../utils";
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -270,6 +272,8 @@ export class PageController {
         switch (item.getAttribute(`href`)) {
           case `#stats`:
             statisticBlock.classList.toggle(`visually-hidden`);
+            const statisticController = new StatisticController(this._sortedArr);
+            statisticController.init();
             break;
         }
       });
