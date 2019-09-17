@@ -8,19 +8,18 @@ export class StatisticController {
   }
 
   init() {
-    const data = _.values(_.countBy(_.flatten(this._cards.map((item) => item.genres))));
-    const genres = _.keys(_.countBy(_.flatten(this._cards.map((item) => item.genres))));
     const ctx = document.querySelector(`.statistic__chart`);
+    const sortedGenresData = this.sortingGenresData();
 
     return new Chart(ctx, {
       plugins: [ChartDataLabels],
       type: `horizontalBar`,
-      data: this.data(data, genres),
-      options: this.options(),
+      data: this.setData(sortedGenresData.amount, sortedGenresData.genres),
+      options: this.setOptions(),
     });
   }
 
-  data(data, labels) {
+  setData(data, labels) {
     return {
       labels,
       datasets: [{
@@ -31,8 +30,16 @@ export class StatisticController {
     };
   }
 
-  options() {
+  setOptions() {
     return {
+      layout: {
+        padding: {
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 215
+        }
+      },
       plugins: {
         datalabels: {
           color: `#ffffff`,
@@ -49,7 +56,7 @@ export class StatisticController {
           barThickness: 25,
           ticks: {
             fontColor: `#ffffff`,
-            padding: 100,
+            padding: 120,
             fontSize: 20,
           },
           gridLines: {
@@ -75,5 +82,32 @@ export class StatisticController {
         enabled: false,
       },
     };
+  }
+
+  sortingGenresData() {
+    const arr = _.countBy(_.flatten(this._cards.map((item) => item.genres)));
+    let sortedArr = [];
+    let sortedData = {
+      amount: [],
+      genres: [],
+    };
+
+    for (let key in arr) {
+      if (Object.prototype.hasOwnProperty.call(arr, key)) {
+        sortedArr.push({
+          genre: key,
+          amount: arr[key]
+        });
+      }
+    }
+
+    sortedArr.sort((a, b) => b.amount - a.amount);
+
+    sortedArr.forEach((item) => {
+      sortedData.amount.push(item[`amount`]);
+      sortedData.genres.push(item[`genre`]);
+    });
+
+    return sortedData;
   }
 }
