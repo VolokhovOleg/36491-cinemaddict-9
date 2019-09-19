@@ -7,6 +7,7 @@ import {TopRated} from '../components/top-rated.js';
 import {MostCommented} from '../components/most-commented.js';
 import {MovieController} from './movie-controller.js';
 import {SearchController} from './search-controller.js';
+import {StatisticController} from "./statistic-controller";
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -27,6 +28,7 @@ export class PageController {
     this._onChangeView = this.onChangeView.bind(this);
     this._onDataChange = this.onDataChange.bind(this);
     this._renderCards = this.renderCards.bind(this);
+    this._statisticController = new StatisticController(this._sortedArr);
     this._extraArr = this._cards.slice(0, 2);
     this._renderIndex = {
       min: 5,
@@ -177,7 +179,7 @@ export class PageController {
         this._totalCardsAmount = this._sortedArr.length;
         this._renderCards();
         this.refreshLoadMoreBtn();
-      } else if (this._phrase.length === 0) {
+      } else if (!this._phrase.length) {
         searchController.cancelSearch();
         this._sortedArr = [...this._cards];
         this._totalCardsAmount = this._cards.length;
@@ -192,11 +194,11 @@ export class PageController {
       cardsArr = this._sortedArr,
       amount = cardsAmount.DEFAULT,
       container = document.querySelector(`.films-list__container`),
-      deleteCards = true) {
+      isDeleteCards = true) {
 
     const filmsMarkUp = container.querySelectorAll(`.film-card`);
 
-    if (deleteCards) {
+    if (isDeleteCards) {
       filmsMarkUp.forEach((item) => item.remove());
     }
 
@@ -270,6 +272,7 @@ export class PageController {
         switch (item.getAttribute(`href`)) {
           case `#stats`:
             statisticBlock.classList.toggle(`visually-hidden`);
+            this._statisticController.init();
             break;
         }
       });

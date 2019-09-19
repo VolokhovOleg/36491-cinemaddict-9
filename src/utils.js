@@ -42,3 +42,5 @@ export const cutText = (text) => {
 
   return text;
 };
+
+export const _ = require(`lodash`);
