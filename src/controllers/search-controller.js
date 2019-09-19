@@ -5,33 +5,32 @@ export class SearchController {
   constructor(searchPhrase, cards) {
     this._cards = cards;
     this._searchPhrase = searchPhrase;
+    this._mainNavigation = document.querySelector(`.main-navigation`);
+    this._sort = document.querySelector(`.sort`);
+    this._searchResult = document.querySelector(`.result`);
+    this._filmsList = document.querySelector(`.films-list`);
+    this._filmsListContainer = document.querySelector(`.films-list__container`);
+    this._extraCardsContainer = document.querySelectorAll(`.films-list--extra`);
+    this._noSearchResultMessage = document.querySelector(`.no-result`);
   }
 
   // Метод поиска фильма
   searchFilm() {
-    const mainNavigation = document.querySelector(`.main-navigation`);
-    const sort = document.querySelector(`.sort`);
-    const searchResult = document.querySelector(`.result`);
-    const filmsList = document.querySelector(`.films-list`);
-    const filmsListContainer = document.querySelector(`.films-list__container`);
-    const extraCardsContainer = document.querySelectorAll(`.films-list--extra`);
-    const noSearchResultMessage = document.querySelector(`.no-result`);
+    const pattern = new RegExp(this._searchPhrase, `i`);
 
-    let pattern = new RegExp(this._searchPhrase, `i`);
+    this._mainNavigation.classList.add(`visually-hidden`);
+    this._sort.classList.add(`visually-hidden`);
+    this._searchResult.classList.remove(`visually-hidden`);
+    unrender(this._noSearchResultMessage);
 
-    mainNavigation.classList.add(`visually-hidden`);
-    sort.classList.add(`visually-hidden`);
-    searchResult.classList.remove(`visually-hidden`);
-    unrender(noSearchResultMessage);
+    this._extraCardsContainer.forEach((item) => item.classList.add(`visually-hidden`));
 
-    extraCardsContainer.forEach((item) => item.classList.add(`visually-hidden`));
-
-    const searchResultCount = searchResult.querySelector(`.result__count`);
+    const searchResultCount = this._searchResult.querySelector(`.result__count`);
     let arr = this._cards.filter((element) => pattern.exec(element.title) !== null);
 
     if (arr.length === 0) {
-      render(filmsList, new NoSearchResult().getElement());
-      filmsListContainer.classList.add(`visually-hidden`);
+      render(this._filmsList, new NoSearchResult().getElement());
+      this._filmsListContainer.classList.add(`visually-hidden`);
     }
 
     searchResultCount.textContent = arr.length;
@@ -41,18 +40,11 @@ export class SearchController {
 
   // Метод отмены поиска
   cancelSearch() {
-    const mainNavigation = document.querySelector(`.main-navigation`);
-    const sort = document.querySelector(`.sort`);
-    const searchResult = document.querySelector(`.result`);
-    const filmsListContainer = document.querySelector(`.films-list__container`);
-    const extraCardsContainer = document.querySelectorAll(`.films-list--extra`);
-    const noSearchResultMessage = document.querySelector(`.no-result`);
-
-    mainNavigation.classList.remove(`visually-hidden`);
-    sort.classList.remove(`visually-hidden`);
-    searchResult.classList.add(`visually-hidden`);
-    filmsListContainer.classList.remove(`visually-hidden`);
-    extraCardsContainer.forEach((item) => item.classList.remove(`visually-hidden`));
-    unrender(noSearchResultMessage);
+    this._mainNavigation.classList.remove(`visually-hidden`);
+    this._sort.classList.remove(`visually-hidden`);
+    this._searchResult.classList.add(`visually-hidden`);
+    this._filmsListContainer.classList.remove(`visually-hidden`);
+    this._extraCardsContainer.forEach((item) => item.classList.remove(`visually-hidden`));
+    unrender(this._noSearchResultMessage);
   }
 }

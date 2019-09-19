@@ -10,7 +10,6 @@ export class StatisticController {
   init() {
     const ctx = document.querySelector(`.statistic__chart`);
     const sortedGenresData = this.sortingGenresData();
-
     return new Chart(ctx, {
       plugins: [ChartDataLabels],
       type: `horizontalBar`,

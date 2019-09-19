@@ -21,7 +21,7 @@ render(header, new Search().getElement());
 // Рендеринг «Звание пользователя»
 render(header, new Rank().getElement());
 
-// Рендеринг «Меню»g
+// Рендеринг «Меню»
 render(main, new Menu(filters).getElement());
 
 // Рендеринг Статистики
