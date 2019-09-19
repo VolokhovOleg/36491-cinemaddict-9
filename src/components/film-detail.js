@@ -53,6 +53,8 @@ const isRatingBlock = (poster, title) => `<div class="form-details__middle-conta
     </section>
   </div>`;
 
+const changeCommentsAmount = (amount) => amount;
+
 export class FilmDetail extends AbstractComponent {
   constructor({emoji, poster, title, ratingSystem, customerRate, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) {
     super();
@@ -156,7 +158,7 @@ export class FilmDetail extends AbstractComponent {
     ${this._isWatched ? isRatingBlock(this._poster, this._title) : ``}
     <div class="form-details__bottom-container">
       <section class="film-details__comments-wrap">
-        <h3 class="film-details__comments-title">Comment${checkWordEnding(this._comments.length)} <span class="film-details__comments-count">${this._comments.length}</span></h3>
+        <h3 class="film-details__comments-title">Comment${checkWordEnding(this._comments.length)} <span class="film-details__comments-count">${changeCommentsAmount(this._comments.length)}</span></h3>
 
         <ul class="film-details__comments-list"></ul>
 
@@ -168,12 +170,12 @@ export class FilmDetail extends AbstractComponent {
           </label>
 
           <div class="film-details__emoji-list">
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="sleeping">
+            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="neutral-face">
             <label class="film-details__emoji-label" for="emoji-smile">
               <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
             </label>
 
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="neutral-face">
+            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping">
             <label class="film-details__emoji-label" for="emoji-sleeping">
               <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
             </label>
