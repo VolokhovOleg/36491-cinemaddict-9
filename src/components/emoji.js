@@ -1,12 +1,12 @@
 import {AbstractComponent} from './abstract-component.js';
 
 export class Emoji extends AbstractComponent {
-  constructor(path) {
+  constructor(emoji) {
     super();
-    this._path = path;
+    this._emoji = emoji;
   }
 
   getTemplate() {
-    return `<img src="${this._path}" width="55" height="55" alt="emoji">`;
+    return `<img src="images/emoji/${this._emoji}.png" width="55" height="55" alt="emoji">`;
   }
 }

@@ -3,6 +3,11 @@ import {render, unrender, getRandomInt} from '../utils.js';
 import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
+import {API} from '../api.js';
+
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
+const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
+const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 export class MovieController {
   constructor(filmData, container, onDataChange, onChangeView) {
@@ -59,7 +64,10 @@ export class MovieController {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
       .forEach((selector) => selector.addEventListener(`click`, () => {
-        this._popUpRender();
+        api.getComments(this._filmData.id).then((comments) => {
+          this._filmData.comments = comments;
+          this._popUpRender();
+        });
       }));
   }
 
@@ -151,7 +159,7 @@ export class MovieController {
 
     // Лисенеры на инпуты эмодзи
     emojiItems.forEach((input) => input.addEventListener(`change`, () => {
-      let emojiTemplate = new Emoji(this._popup._emoji[input.value]);
+      const emojiTemplate = new Emoji(input.value);
       const emoji = document.querySelector(`.film-details__add-emoji-label img`);
 
       if (emoji) {
@@ -159,7 +167,7 @@ export class MovieController {
         emojiLink.removeElement();
       }
 
-      emojiLink = (emojiTemplate);
+      emojiLink = emojiTemplate;
 
       render(emojiBlock, emojiTemplate.getElement());
     }));

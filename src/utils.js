@@ -44,3 +44,4 @@ export const cutText = (text) => {
 };
 
 export const _ = require(`lodash`);
+export const moment = require(`moment`);

@@ -1,8 +1,8 @@
 import {Search} from './components/search.js';
 import {Rank} from './components/rank.js';
 import {Menu} from './components/menu.js';
-import {generateFilters, generateFilm} from './data.js';
-import {render, getRandomInt, _} from './utils.js';
+import {generateFilters} from './data.js';
+import {render} from './utils.js';
 import {LoadMoreBtn} from './components/load-more-btn.js';
 import {PageController} from './controllers/page-controller.js';
 import {Sort} from './components/sort.js';
@@ -30,7 +30,7 @@ render(main, new Menu(filters).getElement());
 // Рендеринг Статистики
 render(main, new Statistic().getElement());
 
-api.getData().then((cards) => {
+api.getFilms().then((cards) => {
   const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult);
   pageController.init();
 });
