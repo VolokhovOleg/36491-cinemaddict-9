@@ -3,14 +3,9 @@ import {render, unrender, getRandomInt} from '../utils.js';
 import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
-import {API} from '../api.js';
-
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
-const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
-const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 export class MovieController {
-  constructor(filmData, container, onDataChange, onChangeView) {
+  constructor(filmData, container, onDataChange, onChangeView, api) {
     this._filmData = filmData;
     this._onDataChange = onDataChange;
     this._onChangeView = onChangeView;
@@ -18,6 +13,7 @@ export class MovieController {
     this._setDefaultView = this.setDefaultView.bind(this);
     this._container = container;
     this._popup = new FilmDetail(this._filmData);
+    this.api = api;
   }
 
   init() {
@@ -37,7 +33,7 @@ export class MovieController {
           watched: this._filmData.isWatched,
           favorite: this._filmData.isFavorite,
         };
-        let btnClasses = new Set(btn.getAttribute(`class`).split(` `));
+        const btnClasses = new Set(btn.getAttribute(`class`).split(` `));
         btn.classList.toggle(`film-card__controls-item--active`);
 
         if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
@@ -64,10 +60,15 @@ export class MovieController {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
       .forEach((selector) => selector.addEventListener(`click`, () => {
-        api.getComments(this._filmData.id).then((comments) => {
-          this._filmData.comments = comments;
-          this._popUpRender();
-        });
+        this.api.getComments(this._filmData.id)
+          .then((comments) => {
+            this._filmData.comments = comments;
+            return this._filmData.comments;
+          })
+          .then(() => this._popUpRender())
+          .catch((err) => {
+            throw err;
+          });
       }));
   }
 
@@ -87,7 +88,6 @@ export class MovieController {
     controlsInputs.forEach((input) => {
       input.addEventListener(`change`, () => {
         const formData = new FormData(document.querySelector(`.film-details__inner`));
-
         let entry = {
           watchlist: formData.get(`watchlist`) !== null,
           watched: formData.get(`watched`) !== null,

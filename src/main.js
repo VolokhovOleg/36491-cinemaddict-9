@@ -10,7 +10,7 @@ import {Statistic} from './components/statistic.js';
 import {SearchResult} from './components/search-result.js';
 import {API} from './api.js';
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=1`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
@@ -31,6 +31,6 @@ render(main, new Menu(filters).getElement());
 render(main, new Statistic().getElement());
 
 api.getFilms().then((cards) => {
-  const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult);
+  const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult, api);
   pageController.init();
 });
