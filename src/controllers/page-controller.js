@@ -16,7 +16,7 @@ const cardsAmount = {
 const MIN_PHRASE_LENGTH = 3;
 
 export class PageController {
-  constructor(container, cards, Sort, LoadMoreBtn, SearchResult, api) {
+  constructor(container, cards, Sort, LoadMoreBtn, SearchResult, onDataChange) {
     this._container = container;
     this._cards = cards;
     this._Sort = new Sort();
@@ -26,7 +26,7 @@ export class PageController {
     this._phrase = ``;
     this._SearchResult = new SearchResult();
     this._onChangeView = this.onChangeView.bind(this);
-    this._onDataChange = this.onDataChange.bind(this);
+    this._onDataChange = onDataChange;
     this._renderCards = this.renderCards.bind(this);
     this._statisticController = new StatisticController(this._sortedArr);
     this._extraArr = this._cards.slice(0, 2);
@@ -35,7 +35,6 @@ export class PageController {
       max: 10
     };
     this._subscriptions = [];
-    this.api = api;
   }
 
   init() {
@@ -210,7 +209,7 @@ export class PageController {
     }
 
     cardsArr.forEach((item) => {
-      const movieController = new MovieController(item, container, this._onDataChange, this._onChangeView, this.api);
+      const movieController = new MovieController(item, container, this._onDataChange, this._onChangeView, this._renderCards);
 
       this._subscriptions.push(movieController._setDefaultView);
       movieController.init();
@@ -230,36 +229,6 @@ export class PageController {
     if (this._renderIndex.max % this._totalCardsAmount === 0 || this._totalCardsAmount <= this._renderIndex.min) {
       unrender(this._LoadMoreBtnTemplate);
     }
-  }
-
-  // Метод onDataChange, который получает на вход обновленные данные
-  onDataChange(newCardData, changedElems = null, popUpRender = null, comments = null) {
-    switch (true) {
-      case comments !== null:
-        if (comments.data) {
-          newCardData.comments = [...newCardData.comments, comments.data];
-        } else {
-          const commentsTemplate = document.querySelectorAll(`.film-details__comment`);
-
-          newCardData.comments = newCardData.comments.filter((item) => item.id.toString() !== comments.id);
-          commentsTemplate.forEach((comment) => unrender(comment));
-        }
-        break;
-      case changedElems !== null:
-        newCardData.isInWatchList = changedElems.watchlist;
-        newCardData.isWatched = changedElems.watched;
-        newCardData.isFavorite = changedElems.favorite;
-        break;
-    }
-
-    // switch(apiMethod === ``)
-
-    if (popUpRender) {
-      popUpRender();
-    }
-
-    this._renderCards();
-    this.api.update(newCardData);
   }
 
   onChangeView() {
