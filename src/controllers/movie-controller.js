@@ -3,16 +3,19 @@ import {render, unrender, getRandomInt} from '../utils.js';
 import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
+import api from '../main.js';
 
 export class MovieController {
-  constructor(filmData, container, onDataChange, onChangeView) {
+  constructor(filmData, container, onDataChange, onChangeView, renderCards) {
     this._filmData = filmData;
     this._onDataChange = onDataChange;
+    this._renderCards = renderCards;
     this._onChangeView = onChangeView;
     this._popUpRender = this.popUpRender.bind(this);
     this._setDefaultView = this.setDefaultView.bind(this);
     this._container = container;
     this._popup = new FilmDetail(this._filmData);
+    this._comments = [];
   }
 
   init() {
@@ -27,27 +30,37 @@ export class MovieController {
     controlsBtns.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
-        let entry = {
-          watchlist: this._filmData.isInWatchList,
-          watched: this._filmData.isWatched,
-          favorite: this._filmData.isFavorite,
+
+        const btnClasses = new Set(btn.getAttribute(`class`).split(` `));
+        const className = {
+          watchList: `film-card__controls-item--add-to-watchlist`,
+          watched: `film-card__controls-item--mark-as-watched`,
+          favorite: `film-card__controls-item--favorite`,
         };
-        let btnClasses = new Set(btn.getAttribute(`class`).split(` `));
-        btn.classList.toggle(`film-card__controls-item--active`);
+        const isBtnActive = btnClasses.has(`film-card__controls-item--active`);
 
-        if (btnClasses.has(`film-card__controls-item--add-to-watchlist`)) {
-          entry.watchlist = !btnClasses.has(`film-card__controls-item--active`);
+        switch (true) {
+          case btnClasses.has(className.watchList) && !isBtnActive:
+            this._filmData.isInWatchList = true;
+            break;
+          case btnClasses.has(className.watched) && !isBtnActive:
+            this._filmData.isWatched = true;
+            break;
+          case btnClasses.has(className.favorite) && !isBtnActive:
+            this._filmData.isFavorite = true;
+            break;
+          case btnClasses.has(className.watchList) && isBtnActive:
+            this._filmData.isInWatchList = false;
+            break;
+          case btnClasses.has(className.watched) && isBtnActive:
+            this._filmData.isWatched = false;
+            break;
+          case btnClasses.has(className.favorite) && isBtnActive:
+            this._filmData.isFavorite = false;
+            break;
         }
 
-        if (btnClasses.has(`film-card__controls-item--mark-as-watched`)) {
-          entry.watched = !btnClasses.has(`film-card__controls-item--active`);
-        }
-
-        if (btnClasses.has(`film-card__controls-item--favorite`)) {
-          entry.favorite = !btnClasses.has(`film-card__controls-item--active`);
-        }
-
-        this._onDataChange(this._filmData, entry);
+        this._onDataChange(this._filmData, `update`, this._renderCards);
       });
     });
 
@@ -59,7 +72,15 @@ export class MovieController {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
       .forEach((selector) => selector.addEventListener(`click`, () => {
-        this._popUpRender();
+        api.getComments(this._filmData.id)
+          .then((comments) => {
+            this._comments = comments;
+            return this._comments;
+          })
+          .then(() => this._popUpRender())
+          .catch((err) => {
+            throw err;
+          });
       }));
   }
 
@@ -79,14 +100,11 @@ export class MovieController {
     controlsInputs.forEach((input) => {
       input.addEventListener(`change`, () => {
         const formData = new FormData(document.querySelector(`.film-details__inner`));
+        this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
+        this._filmData.isWatched = formData.get(`watched`) !== null;
+        this._filmData.isFavorite = formData.get(`favorite`) !== null;
 
-        let entry = {
-          watchlist: formData.get(`watchlist`) !== null,
-          watched: formData.get(`watched`) !== null,
-          favorite: formData.get(`favorite`) !== null,
-        };
-
-        this._onDataChange(this._filmData, entry, this._popUpRender);
+        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
       });
     });
 
@@ -96,7 +114,7 @@ export class MovieController {
     const commentList = document.querySelector(`.film-details__comments-list`);
 
     // Рендеринг комментариев
-    this._filmData.comments.map((comment) => render(commentList, new Comment(comment).getElement()));
+    this._comments.map((comment) => render(commentList, new Comment(comment).getElement()));
 
     // Чтобы не было двойного скрола
     body.style = `overflow: hidden;`;
@@ -151,7 +169,7 @@ export class MovieController {
 
     // Лисенеры на инпуты эмодзи
     emojiItems.forEach((input) => input.addEventListener(`change`, () => {
-      let emojiTemplate = new Emoji(this._popup._emoji[input.value]);
+      const emojiTemplate = new Emoji(input.value);
       const emoji = document.querySelector(`.film-details__add-emoji-label img`);
 
       if (emoji) {
@@ -159,7 +177,7 @@ export class MovieController {
         emojiLink.removeElement();
       }
 
-      emojiLink = (emojiTemplate);
+      emojiLink = emojiTemplate;
 
       render(emojiBlock, emojiTemplate.getElement());
     }));
@@ -185,7 +203,7 @@ export class MovieController {
             date: new Date(),
           },
         };
-        this._onDataChange(this._filmData, null, this._popUpRender, entry);
+        this._refreshData(this._filmData, null, this._popUpRender, entry);
         document.removeEventListener(`keydown`, sendCommentKeysDown);
       }
     };
@@ -193,12 +211,7 @@ export class MovieController {
     commentsDeleteBtn.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
-        entry = {
-          data: null,
-          id: btn.getAttribute(`data-id`),
-        };
-
-        this._onDataChange(this._filmData, null, this._popUpRender, entry);
+        // Удаление кнопки
       });
     });
 

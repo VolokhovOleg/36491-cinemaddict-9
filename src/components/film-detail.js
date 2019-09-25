@@ -1,6 +1,5 @@
-import {checkWordEnding, checkChecked} from './../utils.js';
+import {checkWordEnding, checkChecked, generateRunningTime, moment, _} from './../utils.js';
 import {AbstractComponent} from './abstract-component.js';
-const moment = require(`moment`);
 
 const isCustomRate = (customRate) => `<p class="film-details__user-rating">Your rate ${customRate}</p>`;
 
@@ -89,7 +88,7 @@ export class FilmDetail extends AbstractComponent {
         <div class="film-details__poster">
           <img class="film-details__poster-img" src="${this._poster}" alt="${this._title}">
 
-          <p class="film-details__age">${this._ratingSystem}</p>
+          <p class="film-details__age">${this._ratingSystem}+</p>
         </div>
 
         <div class="film-details__info">
@@ -120,20 +119,20 @@ export class FilmDetail extends AbstractComponent {
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Release Date</td>
-              <td class="film-details__cell">${moment(this._releaseDate).format(`D MMM YY`)}</td>
+              <td class="film-details__cell">${moment(this._releaseDate).format(`DD MMMM YYYY`)}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Runtime</td>
-              <td class="film-details__cell">${this._runningTime}</td>
+              <td class="film-details__cell">${generateRunningTime(this._runningTime)}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Country</td>
               <td class="film-details__cell">${this._country}</td>
             </tr>
             <tr class="film-details__row">
-              <td class="film-details__term">Genre${checkWordEnding(this._genres.length)}</td>
+              <td class="film-details__term">Genre${checkWordEnding(_.size(this._genres))}</td>
               <td class="film-details__cell">
-                ${Array.from(this._genres).map((genre) => `<span class="film-details__genre">${genre}</span>`).join(``)}
+                ${this._genres.map((genre) => `<span class="film-details__genre">${genre}</span>`).join(``)}
               </td>
             </tr>
           </table>
@@ -158,7 +157,7 @@ export class FilmDetail extends AbstractComponent {
     ${this._isWatched ? isRatingBlock(this._poster, this._title) : ``}
     <div class="form-details__bottom-container">
       <section class="film-details__comments-wrap">
-        <h3 class="film-details__comments-title">Comment${checkWordEnding(this._comments.length)} <span class="film-details__comments-count">${changeCommentsAmount(this._comments.length)}</span></h3>
+        <h3 class="film-details__comments-title">Comment${checkWordEnding(_.size(this._comments))} <span class="film-details__comments-count">${changeCommentsAmount(_.size(this._comments))}</span></h3>
 
         <ul class="film-details__comments-list"></ul>
 
@@ -170,7 +169,7 @@ export class FilmDetail extends AbstractComponent {
           </label>
 
           <div class="film-details__emoji-list">
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="neutral-face">
+            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile">
             <label class="film-details__emoji-label" for="emoji-smile">
               <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
             </label>
@@ -185,7 +184,7 @@ export class FilmDetail extends AbstractComponent {
               <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
             </label>
 
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="grinning">
+            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry">
             <label class="film-details__emoji-label" for="emoji-angry">
               <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
             </label>

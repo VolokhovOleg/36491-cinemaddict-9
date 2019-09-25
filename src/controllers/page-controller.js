@@ -16,7 +16,7 @@ const cardsAmount = {
 const MIN_PHRASE_LENGTH = 3;
 
 export class PageController {
-  constructor(container, cards, Sort, LoadMoreBtn, SearchResult) {
+  constructor(container, cards, Sort, LoadMoreBtn, SearchResult, onDataChange) {
     this._container = container;
     this._cards = cards;
     this._Sort = new Sort();
@@ -26,7 +26,7 @@ export class PageController {
     this._phrase = ``;
     this._SearchResult = new SearchResult();
     this._onChangeView = this.onChangeView.bind(this);
-    this._onDataChange = this.onDataChange.bind(this);
+    this._onDataChange = onDataChange;
     this._renderCards = this.renderCards.bind(this);
     this._statisticController = new StatisticController(this._sortedArr);
     this._extraArr = this._cards.slice(0, 2);
@@ -52,7 +52,7 @@ export class PageController {
       render(this._container, this._SearchResult.getElement());
 
       // Сортировка
-      const sortArr = (arr, sortAttr) => arr.sort((a, b) => a[sortAttr] - b[sortAttr]);
+      const sortArr = (arr, sortAttr) => arr.sort((a, b) => b[sortAttr] - a[sortAttr]);
 
       // Функция сортировки отсортированного массива
       const makeNewCardOrder = (arr, sortAttr) => {
@@ -86,7 +86,7 @@ export class PageController {
             });
 
             link.classList.add(`sort__button--active`);
-            let sortAttr = link.getAttribute(`data-sort`);
+            const sortAttr = link.getAttribute(`data-sort`);
 
             makeNewCardOrder(this._sortedArr, sortAttr);
           }
@@ -111,7 +111,7 @@ export class PageController {
 
         // Рендеринг карточек
         this._LoadMoreBtnTemplate.addEventListener(`click`, () => {
-          let arr = this._sortedArr.filter((element) => this._sortedArr.indexOf(element) + 1 <= this._renderIndex.max && this._sortedArr.indexOf(element) + 1 > this._renderIndex.min);
+          const arr = this._sortedArr.filter((element) => this._sortedArr.indexOf(element) + 1 <= this._renderIndex.max && this._sortedArr.indexOf(element) + 1 > this._renderIndex.min);
 
           this._renderCards(arr, cardsAmount.DEFAULT, document.querySelector(`.films-list__container`), false);
 
@@ -202,14 +202,14 @@ export class PageController {
       filmsMarkUp.forEach((item) => item.remove());
     }
 
-    let maxFilmAmount = this._cards.length;
+    const maxFilmAmount = this._cards.length;
 
     if (maxFilmAmount > amount) {
       cardsArr = cardsArr.slice(0, this._renderIndex.min);
     }
 
     cardsArr.forEach((item) => {
-      let movieController = new MovieController(item, container, this._onDataChange, this._onChangeView);
+      const movieController = new MovieController(item, container, this._onDataChange, this._onChangeView, this._renderCards);
 
       this._subscriptions.push(movieController._setDefaultView);
       movieController.init();
@@ -225,35 +225,10 @@ export class PageController {
     if (!document.contains(this._LoadMoreBtnTemplate)) {
       render(filmsList, this._LoadMoreBtnTemplate);
     }
+
     if (this._renderIndex.max % this._totalCardsAmount === 0 || this._totalCardsAmount <= this._renderIndex.min) {
       unrender(this._LoadMoreBtnTemplate);
     }
-  }
-
-  // Метод onDataChange, который получает на вход обновленные данные
-  onDataChange(newCardData, changedElems = null, popUpRender = null, comments = null) {
-    switch (true) {
-      case comments !== null:
-        if (comments.data) {
-          newCardData.comments = [...newCardData.comments, comments.data];
-        } else {
-          let commentsTemplate = document.querySelectorAll(`.film-details__comment`);
-          newCardData.comments = newCardData.comments.filter((item) => item.id.toString() !== comments.id);
-          commentsTemplate.forEach((comment) => unrender(comment));
-        }
-        break;
-      case changedElems !== null:
-        newCardData.isInWatchList = changedElems.watchlist;
-        newCardData.isWatched = changedElems.watched;
-        newCardData.isFavorite = changedElems.favorite;
-        break;
-    }
-
-    if (popUpRender) {
-      popUpRender();
-    }
-
-    this._renderCards();
   }
 
   onChangeView() {
