@@ -2,7 +2,7 @@ import {Search} from './components/search.js';
 import {Rank} from './components/rank.js';
 import {Menu} from './components/menu.js';
 import {generateFilters} from './data.js';
-import {render} from './utils.js';
+import {render, setErrorEffect} from './utils.js';
 import {LoadMoreBtn} from './components/load-more-btn.js';
 import {PageController} from './controllers/page-controller.js';
 import {Sort} from './components/sort.js';
@@ -22,15 +22,30 @@ let cards = [];
 const onDataChange = (data, apiMethod, renderCards, popUpRender = null) => {
   switch (apiMethod) {
     case `update`:
+      const form = document.querySelector(`.film-details__inner`);
+      const rateInputs = document.querySelectorAll(`.film-details__user-rating-input`);
+      rateInputs.forEach((input) => (input.disabled = true));
+      form.style.border = ``;
       api.update(data)
         .then(() => {
           if (popUpRender) {
             popUpRender();
           }
           return renderCards();
+        })
+        .catch((error) => {
+          setErrorEffect(form);
+          form.style.border = `1px solid red`;
+          rateInputs.forEach((input) => (input.disabled = false));
+          throw error;
         });
       break;
     case `post`:
+      const commentArea = document.querySelector(`.film-details__comment-input`);
+      const smileInputs = document.querySelectorAll(`.film-details__emoji-item`);
+      smileInputs.forEach((input) => (input.disabled = true));
+      commentArea.style.border = ``;
+      commentArea.disabled = true;
       api.postComment(data)
         .then(() => {
           return api.getFilms().then((films) => {
@@ -42,7 +57,17 @@ const onDataChange = (data, apiMethod, renderCards, popUpRender = null) => {
 
             return renderCards(cards);
           });
+        })
+        .catch((error) => {
+          setErrorEffect(commentArea);
+          commentArea.disabled = false;
+          commentArea.style.border = `1px solid red`;
+          smileInputs.forEach((input) => {
+            input.disabled = false;
+          });
+          throw error;
         });
+
       break;
     case `delete`:
       api.deleteComment(data)
@@ -81,5 +106,3 @@ api.getFilms().then((films) => {
 });
 
 export default api;
-
-// Порефакторить!

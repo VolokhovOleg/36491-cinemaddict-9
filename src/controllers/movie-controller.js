@@ -99,7 +99,6 @@ export class MovieController {
         controlsInputs.forEach((input) => {
           input.addEventListener(`change`, () => {
             const formData = new FormData(form);
-
             this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
             this._filmData.isWatched = formData.get(`watched`) !== null;
             this._filmData.isFavorite = formData.get(`favorite`) !== null;
@@ -110,7 +109,6 @@ export class MovieController {
         rateInputs.forEach((input) => {
           input.addEventListener(`change`, () => {
             const formData = new FormData(form);
-
             this._filmData.customerRate = _.toNumber(formData.get(`score`));
             this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
           });
