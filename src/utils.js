@@ -42,6 +42,11 @@ export const cutText = (text) => {
 
   return text;
 };
+export const setErrorEffect = (element) => {
+  element.classList.add(`shake`);
+  setTimeout(() => element.classList.remove(`shake`), 600);
+};
 
 export const _ = require(`lodash`);
 export const moment = require(`moment`);
+

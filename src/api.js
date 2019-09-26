@@ -47,6 +47,19 @@ export const API = class {
       .then(ModelFilm.parseFilm);
   }
 
+  postComment(comment) {
+    return this._load({
+      url: `comments/${comment.id}`,
+      body: JSON.stringify(comment.toRAW()),
+      method: Method.POST,
+      headers: new Headers({'Content-Type': `application/json`})
+    });
+  }
+
+  deleteComment(id) {
+    return this._load({url: `comments/${id}`, method: Method.DELETE});
+  }
+
   _load({url, method = Method.GET, body = null, headers = new Headers()}) {
     headers.append(`Authorization`, this._authorization);
 
