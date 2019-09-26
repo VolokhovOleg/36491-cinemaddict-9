@@ -10,18 +10,19 @@ import {Statistic} from './components/statistic.js';
 import {SearchResult} from './components/search-result.js';
 import {API} from './api.js';
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=9`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=7`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 const filters = generateFilters();
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
+let cards = [];
 
-const onDataChange = (cardData, apiMethod, renderCards, popUpRender = null) => {
+const onDataChange = (data, apiMethod, renderCards, popUpRender = null) => {
   switch (apiMethod) {
     case `update`:
-      api.update(cardData)
+      api.update(data)
         .then(() => {
           if (popUpRender) {
             popUpRender();
@@ -29,7 +30,33 @@ const onDataChange = (cardData, apiMethod, renderCards, popUpRender = null) => {
           return renderCards();
         });
       break;
+    case `post`:
+      api.postComment(data)
+        .then(() => {
+          return api.getFilms().then((films) => {
+            cards = films;
+
+            if (popUpRender) {
+              popUpRender();
+            }
+
+            return renderCards(cards);
+          });
+        });
+      break;
     case `delete`:
+      api.deleteComment(data)
+        .then(() => {
+          return api.getFilms().then((films) => {
+            cards = films;
+
+            if (popUpRender) {
+              popUpRender();
+            }
+
+            return renderCards(cards);
+          });
+        });
       break;
   }
 };
@@ -46,8 +73,10 @@ render(main, new Menu(filters).getElement());
 // Рендеринг Статистики
 render(main, new Statistic().getElement());
 
-api.getFilms().then((cards) => {
-  const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult, onDataChange, api);
+api.getFilms().then((films) => {
+  cards = films;
+
+  const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult, onDataChange);
   pageController.init();
 });
 

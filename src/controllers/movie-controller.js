@@ -1,8 +1,9 @@
 import {FilmDetail} from '../components/film-detail.js';
-import {render, unrender, getRandomInt} from '../utils.js';
+import {render, unrender, _} from '../utils.js';
 import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
+import {ModelComment} from '../model-comment.js';
 import api from '../main.js';
 
 export class MovieController {
@@ -71,56 +72,67 @@ export class MovieController {
   trackOpenedCard(card) {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
-      .forEach((selector) => selector.addEventListener(`click`, () => {
-        api.getComments(this._filmData.id)
-          .then((comments) => {
-            this._comments = comments;
-            return this._comments;
-          })
-          .then(() => this._popUpRender())
-          .catch((err) => {
-            throw err;
-          });
-      }));
+      .forEach((selector) => selector.addEventListener(`click`, () => this._popUpRender()));
   }
 
   // Рендеринг попапа
   popUpRender() {
-    this._onChangeView();
+    api.getComments(this._filmData.id)
+      .then((comments) => {
+        this._comments = comments;
+        return this._comments;
+      })
+      .then(() => {
+        this._onChangeView();
 
-    const body = document.querySelector(`body`);
+        const body = document.querySelector(`body`);
 
-    this._popup = new FilmDetail(this._filmData);
+        this._popup = new FilmDetail(this._filmData);
 
-    render(body, this._popup.getElement());
+        render(body, this._popup.getElement());
 
-    const controlsInputs = document.querySelectorAll(`.film-details__control-input`);
+        const controlsInputs = document.querySelectorAll(`.film-details__control-input`);
+        const rateInputs = document.querySelectorAll(`.film-details__user-rating-input`);
+        const form = document.querySelector(`.film-details__inner`);
 
-    // Лисенеры на инпуты контролов в попапе
-    controlsInputs.forEach((input) => {
-      input.addEventListener(`change`, () => {
-        const formData = new FormData(document.querySelector(`.film-details__inner`));
-        this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
-        this._filmData.isWatched = formData.get(`watched`) !== null;
-        this._filmData.isFavorite = formData.get(`favorite`) !== null;
+        // Лисенеры на инпуты контролов в попапе
+        controlsInputs.forEach((input) => {
+          input.addEventListener(`change`, () => {
+            const formData = new FormData(form);
 
-        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
+            this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
+            this._filmData.isWatched = formData.get(`watched`) !== null;
+            this._filmData.isFavorite = formData.get(`favorite`) !== null;
+            this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
+          });
+        });
+
+        rateInputs.forEach((input) => {
+          input.addEventListener(`change`, () => {
+            const formData = new FormData(form);
+
+            this._filmData.customerRate = _.toNumber(formData.get(`score`));
+            this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
+          });
+        });
+
+        // Отслеживаю закрытие попапа
+        this.trackClosedPopup();
+
+        const commentList = document.querySelector(`.film-details__comments-list`);
+
+        // Рендеринг комментариев
+        this._comments.map((comment) => render(commentList, new Comment(comment).getElement()));
+
+        // Чтобы не было двойного скрола
+        body.style = `overflow: hidden;`;
+
+        // Отслеживаю удаление комментария
+        this.trackComments();
+      })
+      .catch((err) => {
+        throw err;
       });
-    });
-
-    // Отслеживаю закрытие попапа
-    this.trackClosedPopup();
-
-    const commentList = document.querySelector(`.film-details__comments-list`);
-
-    // Рендеринг комментариев
-    this._comments.map((comment) => render(commentList, new Comment(comment).getElement()));
-
-    // Чтобы не было двойного скрола
-    body.style = `overflow: hidden;`;
-
-    // Отслеживаю удаление комментария
-    this.trackComments();
   }
 
   // Метод отслеживаю закрытие попапа
@@ -165,7 +177,6 @@ export class MovieController {
     const emojiBlock = document.querySelector(`.film-details__add-emoji-label`);
     const emojiItems = document.querySelectorAll(`.film-details__emoji-item`);
     let emojiLink = null;
-    let entry = {};
 
     // Лисенеры на инпуты эмодзи
     emojiItems.forEach((input) => input.addEventListener(`change`, () => {
@@ -189,21 +200,15 @@ export class MovieController {
 
     const sendCommentKeysDown = (evt) => {
       if (evt.key === `Control`) {
-        entry = {
-          data: {
-            id: getRandomInt(0, 9999999999999),
-            emoji: checkEmojiSrc(),
-            author: [
-              `Tim Macoveev`,
-              `John Doe`,
-              `Heinz Herald`,
-              `Dan Duryea`,
-            ][getRandomInt(0, 3)],
-            content: commentField.value,
-            date: new Date(),
-          },
+
+        const entry = {
+          emotion: checkEmojiSrc(),
+          comment: commentField.value,
+          date: `2019-05-11T16:12:32.554Z`,
+          id: this._filmData.id
         };
-        this._refreshData(this._filmData, null, this._popUpRender, entry);
+
+        this._onDataChange(new ModelComment(entry), `post`, this._renderCards, this._popUpRender);
         document.removeEventListener(`keydown`, sendCommentKeysDown);
       }
     };
@@ -211,7 +216,8 @@ export class MovieController {
     commentsDeleteBtn.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
-        // Удаление кнопки
+        const commentId = btn.getAttribute(`data-id`);
+        this._onDataChange(commentId, `delete`, this._renderCards, this._popUpRender);
       });
     });
 
