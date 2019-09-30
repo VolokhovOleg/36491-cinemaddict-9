@@ -13,7 +13,7 @@ export class ModelFilm {
     this.alternativeTitle = data[`film_info`][`alternative_title`];
     this.rating = data[`film_info`][`total_rating`];
     this.customerRate = data[`user_details`][`personal_rating`];
-    this.releaseDate = new Date(data[`film_info`][`release`][`date`]);
+    this.releaseDate = data[`film_info`][`release`][`date`];
     this.country = data[`film_info`][`release`][`release_country`];
     this.ratingSystem = data[`film_info`][`age_rating`];
     this.runningTime = data[`film_info`][`runtime`];
@@ -54,7 +54,7 @@ export class ModelFilm {
         "personal_rating": this.customerRate,
         "watchlist": this.isInWatchList,
         "already_watched": this.isWatched,
-        "watching_date": `2019-05-11T16:12:32.554Z`,
+        "watching_date": this.releaseDate,
         "favorite": this.isFavorite,
       },
       "comments": this.comments,

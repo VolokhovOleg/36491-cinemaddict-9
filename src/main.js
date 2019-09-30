@@ -1,44 +1,46 @@
 import {Search} from './components/search.js';
 import {Rank} from './components/rank.js';
 import {Menu} from './components/menu.js';
-import {generateFilters} from './data.js';
 import {render, setErrorEffect} from './utils.js';
 import {LoadMoreBtn} from './components/load-more-btn.js';
 import {PageController} from './controllers/page-controller.js';
 import {Sort} from './components/sort.js';
 import {Statistic} from './components/statistic.js';
 import {SearchResult} from './components/search-result.js';
-import {API} from './api.js';
+import API from './api.js';
+import {_} from "./utils";
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=7`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=5`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
-const filters = generateFilters();
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
+const filters = {
+  watchList: [],
+  history: [],
+  favorite: [],
+};
 let cards = [];
 
+const countingFilters = () => {
+  const filter = {
+    watchList: document.querySelector(`.main-navigation__item[href="#watchlist"] span`),
+    history: document.querySelector(`.main-navigation__item[href="#history"] span`),
+    favorite: document.querySelector(`.main-navigation__item[href="#favorites"] span`),
+  };
+
+  filter.watchList.textContent = _.size(cards.filter((item) => item.isInWatchList));
+  filter.history.textContent = _.size(cards.filter((item) => item.isWatched));
+  filter.favorite.textContent = _.size(cards.filter((item) => item.isFavorite));
+};
+
 const onDataChange = (data, apiMethod, renderCards, popUpRender = null) => {
+  let promise = null;
+
   switch (apiMethod) {
     case `update`:
-      const form = document.querySelector(`.film-details__inner`);
-      const rateInputs = document.querySelectorAll(`.film-details__user-rating-input`);
-      rateInputs.forEach((input) => (input.disabled = true));
-      form.style.border = ``;
-      api.update(data)
-        .then(() => {
-          if (popUpRender) {
-            popUpRender();
-          }
-          return renderCards();
-        })
-        .catch((error) => {
-          setErrorEffect(form);
-          form.style.border = `1px solid red`;
-          rateInputs.forEach((input) => (input.disabled = false));
-          throw error;
-        });
+      promise = api.update(data);
       break;
     case `post`:
       const commentArea = document.querySelector(`.film-details__comment-input`);
@@ -81,28 +83,32 @@ const onDataChange = (data, apiMethod, renderCards, popUpRender = null) => {
 
             return renderCards(cards);
           });
+        })
+        .catch((error) => {
+          document
+            .querySelector(`.film-details__comment-delete[data-id="${data}"]`)
+            .textContent = `Delete`;
+          throw error;
         });
       break;
   }
+  return promise;
 };
 
-// Рендеринг «Поиск»
+export const getComments = (id) => api.getComments(id);
+
 render(header, new Search().getElement());
 
-// Рендеринг «Звание пользователя»
 render(header, new Rank().getElement());
 
-// Рендеринг «Меню»
 render(main, new Menu(filters).getElement());
 
-// Рендеринг Статистики
 render(main, new Statistic().getElement());
 
 api.getFilms().then((films) => {
   cards = films;
+  countingFilters();
 
   const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult, onDataChange);
   pageController.init();
 });
-
-export default api;

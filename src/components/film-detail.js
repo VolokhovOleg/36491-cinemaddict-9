@@ -44,7 +44,7 @@ const isRatingBlock = (poster, title) => `<div class="form-details__middle-conta
             <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="8" id="rating-8">
             <label class="film-details__user-rating-label" for="rating-8">8</label>
 
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="9" id="rating-9" checked="">
+            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="9" id="rating-9">
             <label class="film-details__user-rating-label" for="rating-9">9</label>
           </div>
         </section>
@@ -52,10 +52,8 @@ const isRatingBlock = (poster, title) => `<div class="form-details__middle-conta
     </section>
   </div>`;
 
-const changeCommentsAmount = (amount) => amount;
-
 export class FilmDetail extends AbstractComponent {
-  constructor({emoji, poster, title, ratingSystem, customerRate, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) {
+  constructor({poster, title, ratingSystem, customerRate, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, isInWatchList, isWatched, isFavorite}) {
     super();
     this._poster = poster;
     this._title = title;
@@ -70,11 +68,9 @@ export class FilmDetail extends AbstractComponent {
     this._country = country;
     this._genres = genres;
     this._description = description;
-    this._comments = comments;
     this._isInWatchList = isInWatchList;
     this._isWatched = isWatched;
     this._isFavorite = isFavorite;
-    this._emoji = emoji;
   }
 
   getTemplate() {
@@ -155,43 +151,7 @@ export class FilmDetail extends AbstractComponent {
       </section>
     </div>
     ${this._isWatched ? isRatingBlock(this._poster, this._title) : ``}
-    <div class="form-details__bottom-container">
-      <section class="film-details__comments-wrap">
-        <h3 class="film-details__comments-title">Comment${checkWordEnding(_.size(this._comments))} <span class="film-details__comments-count">${changeCommentsAmount(_.size(this._comments))}</span></h3>
-
-        <ul class="film-details__comments-list"></ul>
-
-        <div class="film-details__new-comment">
-          <div for="add-emoji" class="film-details__add-emoji-label"></div>
-
-          <label class="film-details__comment-label">
-            <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
-          </label>
-
-          <div class="film-details__emoji-list">
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile">
-            <label class="film-details__emoji-label" for="emoji-smile">
-              <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping">
-            <label class="film-details__emoji-label" for="emoji-sleeping">
-              <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke">
-            <label class="film-details__emoji-label" for="emoji-puke">
-              <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry">
-            <label class="film-details__emoji-label" for="emoji-angry">
-              <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
-            </label>
-          </div>
-        </div>
-      </section>
-    </div>
+    <div class="form-details__bottom-container"></div>
   </form>
 </section>`;
   }

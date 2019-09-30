@@ -26,7 +26,7 @@ export class SearchController {
     this._extraCardsContainer.forEach((item) => item.classList.add(`visually-hidden`));
 
     const searchResultCount = this._searchResult.querySelector(`.result__count`);
-    let arr = this._cards.filter((element) => pattern.exec(element.title) !== null);
+    const arr = this._cards.filter((element) => pattern.exec(element.title) !== null);
 
     if (arr.length === 0) {
       render(this._filmsList, new NoSearchResult().getElement());

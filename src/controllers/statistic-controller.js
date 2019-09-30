@@ -1,6 +1,6 @@
 import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import {_} from "../utils";
+import {_} from '../utils.js';
 
 export class StatisticController {
   constructor(cards) {
@@ -36,7 +36,7 @@ export class StatisticController {
           left: 0,
           right: 0,
           top: 0,
-          bottom: 215
+          bottom: 110
         }
       },
       plugins: {
@@ -55,7 +55,7 @@ export class StatisticController {
           barThickness: 25,
           ticks: {
             fontColor: `#ffffff`,
-            padding: 120,
+            padding: 100,
             fontSize: 20,
           },
           gridLines: {
@@ -85,11 +85,11 @@ export class StatisticController {
 
   sortingGenresData() {
     const arr = _.countBy(_.flatten(this._cards.map((item) => item.genres)));
-    let sortedArr = [];
-    let sortedData = {
+    const sortedData = {
       amount: [],
       genres: [],
     };
+    let sortedArr = [];
 
     for (let key in arr) {
       if (Object.prototype.hasOwnProperty.call(arr, key)) {

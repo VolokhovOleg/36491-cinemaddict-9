@@ -1,10 +1,12 @@
+import {moment} from './utils.js';
+
 export class ModelComment {
   constructor(data) {
     this.id = data[`id`];
     this.emoji = data[`emotion`];
     this.author = data[`author`];
     this.content = data[`comment`];
-    this.date = new Date(data[`date`]);
+    this.date = data[`date`];
   }
 
   static parseComment(data) {
@@ -18,8 +20,8 @@ export class ModelComment {
   toRAW() {
     return {
       "comment": this.content,
-      "date": `2019-05-11T16:12:32.554Z`,
-      "emotion": `smile`,
+      "date": moment(this.date).format(),
+      "emotion": this.emoji,
     };
   }
 }

@@ -4,19 +4,23 @@ import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
 import {ModelComment} from '../model-comment.js';
-import api from '../main.js';
+import {getComments} from '../main.js';
+import CommentsBlock from "../components/comments-block";
+import {setErrorEffect} from "../utils";
 
 export class MovieController {
-  constructor(filmData, container, onDataChange, onChangeView, renderCards) {
+  constructor(filmData, container, onDataChange, onChangeView, renderCards, countingFilters) {
     this._filmData = filmData;
     this._onDataChange = onDataChange;
     this._renderCards = renderCards;
     this._onChangeView = onChangeView;
+    this._countingFilters = countingFilters;
     this._popUpRender = this.popUpRender.bind(this);
     this._setDefaultView = this.setDefaultView.bind(this);
     this._container = container;
     this._popup = new FilmDetail(this._filmData);
     this._comments = [];
+    this._body = document.querySelector(`body`);
   }
 
   init() {
@@ -72,78 +76,87 @@ export class MovieController {
   trackOpenedCard(card) {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
-      .forEach((selector) => selector.addEventListener(`click`, () => this._popUpRender()));
+      .forEach((selector) => selector
+        .addEventListener(`click`, () => this._popUpRender(true)));
   }
 
   // Рендеринг попапа
   popUpRender() {
-    api.getComments(this._filmData.id)
-      .then((comments) => {
-        this._comments = comments;
-        return this._comments;
-      })
-      .then(() => {
-        this._onChangeView();
+    this._onChangeView();
 
-        const body = document.querySelector(`body`);
+    this._popup = new FilmDetail(this._filmData);
 
-        this._popup = new FilmDetail(this._filmData);
+    render(this._body, this._popup.getElement());
 
-        render(body, this._popup.getElement());
+    const controlsInputs = document.querySelectorAll(`.film-details__control-input`);
+    const rateInputs = document.querySelectorAll(`.film-details__user-rating-input`);
+    const form = document.querySelector(`.film-details__inner`);
+    const rateBlock = document.querySelector(`.film-details__user-rating-wrap`);
 
-        const controlsInputs = document.querySelectorAll(`.film-details__control-input`);
-        const rateInputs = document.querySelectorAll(`.film-details__user-rating-input`);
-        const form = document.querySelector(`.film-details__inner`);
-
-        // Лисенеры на инпуты контролов в попапе
-        controlsInputs.forEach((input) => {
-          input.addEventListener(`change`, () => {
-            const formData = new FormData(form);
-            this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
-            this._filmData.isWatched = formData.get(`watched`) !== null;
-            this._filmData.isFavorite = formData.get(`favorite`) !== null;
-            this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
-          });
-        });
-
-        rateInputs.forEach((input) => {
-          input.addEventListener(`change`, () => {
-            const formData = new FormData(form);
-            this._filmData.customerRate = _.toNumber(formData.get(`score`));
-            this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
-          });
-        });
-
-        // Отслеживаю закрытие попапа
-        this.trackClosedPopup();
-
-        const commentList = document.querySelector(`.film-details__comments-list`);
-
-        // Рендеринг комментариев
-        this._comments.map((comment) => render(commentList, new Comment(comment).getElement()));
-
-        // Чтобы не было двойного скрола
-        body.style = `overflow: hidden;`;
-
-        // Отслеживаю удаление комментария
-        this.trackComments();
-      })
-      .catch((err) => {
-        throw err;
+    // Лисенеры на инпуты контролов в попапе
+    controlsInputs.forEach((input) => {
+      input.addEventListener(`change`, () => {
+        const formData = new FormData(form);
+        this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
+        this._filmData.isWatched = formData.get(`watched`) !== null;
+        this._filmData.isFavorite = formData.get(`favorite`) !== null;
+        
+        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender)
+          .then(() => {
+            if (this._popUpRender) {
+              form.style.border = ``;
+              this._popUpRender(true);
+            }
+            this._countingFilters();
+            return this._renderCards();
+          })
+              .catch((error) => {
+                setErrorEffect(form);
+                form.style.border = `1px solid red`;
+                rateInputs.forEach((elements) => (elements.disabled = false));
+                throw error;
+              });
       });
+    });
+
+    rateInputs.forEach((input) => {
+      input.addEventListener(`change`, () => {
+        const formData = new FormData(form);
+        rateInputs.forEach((element) => (element.disabled = true));
+
+        this._filmData.customerRate = _.toNumber(formData.get(`score`));
+        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
+      });
+    });
+
+    if (rateBlock) {
+      const resetRateBtn = rateBlock.querySelector(`.film-details__watched-reset`);
+      const checkedRate = rateBlock
+        .querySelector(`.film-details__user-rating-input[value="${this._filmData.customerRate}"]`);
+
+      checkedRate.checked = true;
+
+      resetRateBtn.addEventListener(`click`, () => {
+        this._filmData.isWatched = false;
+        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
+      });
+    }
+
+    this._body.style = `overflow: hidden;`;
+
+    this.renderComments();
   }
 
   // Метод отслеживаю закрытие попапа
   trackClosedPopup() {
     const commentArea = document.querySelector(`.film-details__comment-input`);
     const popupTemplate = document.querySelector(`.film-details`);
-    const body = document.querySelector(`body`);
 
     const onEscKeyDown = (evt) => {
       if (evt.key === `Escape` || evt.key === `Esc`) {
         unrender(popupTemplate);
         this._popup.removeElement();
-        body.style = ``;
+        this._body.style = ``;
         document.removeEventListener(`keydown`, onEscKeyDown);
         document.removeEventListener(`focus`, removeOnEscListener);
         document.removeEventListener(`blur`, addOnEscListener);
@@ -164,8 +177,23 @@ export class MovieController {
       this._popup.removeElement();
       commentArea.removeEventListener(`focus`, removeOnEscListener);
       commentArea.removeEventListener(`blur`, addOnEscListener);
-      body.style = ``;
+      this._body.style = ``;
     });
+  }
+
+  renderComments() {
+    const commentsWrap = document.querySelector(`.form-details__bottom-container`);
+
+    getComments(this._filmData.id)
+      .then((data) => {
+        this._comments = data;
+        const commentsBlock = new CommentsBlock(this._comments);
+        render(commentsWrap, commentsBlock.getElement());
+        const commentList = commentsWrap.querySelector(`.film-details__comments-list`);
+        this._comments.forEach((comment) => render(commentList, new Comment(comment).getElement()));
+        this.trackComments();
+        this.trackClosedPopup();
+      });
   }
 
   // Метод отслеживаю изменения комментариев
@@ -192,17 +220,18 @@ export class MovieController {
     }));
 
     const checkEmojiSrc = () => {
-      const emoji = document.querySelector(`.film-details__add-emoji-label img`);
-      return emoji ? emoji.getAttribute(`src`) : ``;
+      const emojiList = document.querySelectorAll(`.film-details__emoji-item`);
+      const emotion = _.toArray(emojiList).filter((item) => item.checked);
+      return _.isEmpty(emotion) ? `` : emotion[0].value;
     };
 
     const sendCommentKeysDown = (evt) => {
-      if (evt.key === `Control`) {
+      if (evt.ctrlKey && evt.key === `Enter`) {
 
         const entry = {
           emotion: checkEmojiSrc(),
           comment: commentField.value,
-          date: `2019-05-11T16:12:32.554Z`,
+          date: Date.now(),
           id: this._filmData.id
         };
 
@@ -214,13 +243,16 @@ export class MovieController {
     commentsDeleteBtn.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
+        btn.textContent = `Deleting…`;
         const commentId = btn.getAttribute(`data-id`);
         this._onDataChange(commentId, `delete`, this._renderCards, this._popUpRender);
       });
     });
 
-    commentField.addEventListener(`focus`, () => document.addEventListener(`keydown`, sendCommentKeysDown));
-    commentField.addEventListener(`blur`, () => document.removeEventListener(`keydown`, sendCommentKeysDown));
+    commentField
+      .addEventListener(`focus`, () => document.addEventListener(`keydown`, sendCommentKeysDown));
+    commentField
+      .addEventListener(`blur`, () => document.removeEventListener(`keydown`, sendCommentKeysDown));
   }
 
   setDefaultView() {
