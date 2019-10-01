@@ -1,23 +1,28 @@
 import {FilmDetail} from '../components/film-detail.js';
-import {render, unrender, _} from '../utils.js';
+import {render, unrender, setErrorEffect, _} from '../utils.js';
 import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
 import {ModelComment} from '../model-comment.js';
-import {getComments} from '../main.js';
-import CommentsBlock from "../components/comments-block";
-import {setErrorEffect} from "../utils";
+import {getComments, onDataChange, countingFilters} from '../main.js';
+import CommentsBlock from '../components/comments-block.js';
+
+const DELAY = 300;
+const apiMethod = {
+  DELETE: `delete`,
+  UPDATE: `update`,
+  POST: `post`,
+};
 
 export class MovieController {
-  constructor(filmData, container, onDataChange, onChangeView, renderCards, countingFilters) {
+  constructor(filmData, onChangeView, renderCards) {
     this._filmData = filmData;
     this._onDataChange = onDataChange;
     this._renderCards = renderCards;
     this._onChangeView = onChangeView;
     this._countingFilters = countingFilters;
-    this._popUpRender = this.popUpRender.bind(this);
     this._setDefaultView = this.setDefaultView.bind(this);
-    this._container = container;
+    this._container = document.querySelector(`.films-list__container`);
     this._popup = new FilmDetail(this._filmData);
     this._comments = [];
     this._body = document.querySelector(`body`);
@@ -27,49 +32,57 @@ export class MovieController {
     const card = new CardsTemplate(this._filmData);
     const cardTemplate = card.getElement();
 
-    // Рендеринг карточек
     render(this._container, cardTemplate);
-    const controlsBtns = cardTemplate.querySelectorAll(`.film-card__controls-item`);
+    const controlsButtons = cardTemplate.querySelectorAll(`.film-card__controls-item`);
 
-    // Лисенеры на кнопки контролов
-    controlsBtns.forEach((btn) => {
+    const changeControlsState = _.throttle((btn) => {
+      const btnClasses = new Set(btn.getAttribute(`class`).split(` `));
+      const className = {
+        watchList: `film-card__controls-item--add-to-watchlist`,
+        watched: `film-card__controls-item--mark-as-watched`,
+        favorite: `film-card__controls-item--favorite`,
+        active: `film-card__controls-item--active`,
+      };
+      const isBtnActive = btnClasses.has(className.active);
+
+      switch (true) {
+        case btnClasses.has(className.watchList) && !isBtnActive:
+          this._filmData.isInWatchList = true;
+          break;
+        case btnClasses.has(className.watched) && !isBtnActive:
+          this._filmData.isWatched = true;
+          break;
+        case btnClasses.has(className.favorite) && !isBtnActive:
+          this._filmData.isFavorite = true;
+          break;
+        case btnClasses.has(className.watchList) && isBtnActive:
+          this._filmData.isInWatchList = false;
+          break;
+        case btnClasses.has(className.watched) && isBtnActive:
+          this._filmData.isWatched = false;
+          break;
+        case btnClasses.has(className.favorite) && isBtnActive:
+          this._filmData.isFavorite = false;
+          break;
+      }
+
+      this._onDataChange(this._filmData, apiMethod.UPDATE)
+        .then(() => {
+          btn.classList.toggle(className.active);
+          return this._countingFilters();
+        })
+        .catch((error) => {
+          throw error;
+        });
+    }, DELAY);
+
+    controlsButtons.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
-
-        const btnClasses = new Set(btn.getAttribute(`class`).split(` `));
-        const className = {
-          watchList: `film-card__controls-item--add-to-watchlist`,
-          watched: `film-card__controls-item--mark-as-watched`,
-          favorite: `film-card__controls-item--favorite`,
-        };
-        const isBtnActive = btnClasses.has(`film-card__controls-item--active`);
-
-        switch (true) {
-          case btnClasses.has(className.watchList) && !isBtnActive:
-            this._filmData.isInWatchList = true;
-            break;
-          case btnClasses.has(className.watched) && !isBtnActive:
-            this._filmData.isWatched = true;
-            break;
-          case btnClasses.has(className.favorite) && !isBtnActive:
-            this._filmData.isFavorite = true;
-            break;
-          case btnClasses.has(className.watchList) && isBtnActive:
-            this._filmData.isInWatchList = false;
-            break;
-          case btnClasses.has(className.watched) && isBtnActive:
-            this._filmData.isWatched = false;
-            break;
-          case btnClasses.has(className.favorite) && isBtnActive:
-            this._filmData.isFavorite = false;
-            break;
-        }
-
-        this._onDataChange(this._filmData, `update`, this._renderCards);
+        changeControlsState(btn);
       });
     });
 
-    // Отслеживаю открытие попапа
     this.trackOpenedCard(cardTemplate);
   }
 
@@ -77,10 +90,9 @@ export class MovieController {
     card
       .querySelectorAll(`.film-card__title, .film-card__poster, .film-card__comments`)
       .forEach((selector) => selector
-        .addEventListener(`click`, () => this._popUpRender(true)));
+        .addEventListener(`click`, () => this.popUpRender(true)));
   }
 
-  // Рендеринг попапа
   popUpRender() {
     this._onChangeView();
 
@@ -93,39 +105,47 @@ export class MovieController {
     const form = document.querySelector(`.film-details__inner`);
     const rateBlock = document.querySelector(`.film-details__user-rating-wrap`);
 
-    // Лисенеры на инпуты контролов в попапе
+    const setStateInputsDisabled = (state) => rateInputs.forEach((elements) => {
+      elements.disabled = state;
+      return elements.disabled;
+    });
+
     controlsInputs.forEach((input) => {
       input.addEventListener(`change`, () => {
         const formData = new FormData(form);
         this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
         this._filmData.isWatched = formData.get(`watched`) !== null;
         this._filmData.isFavorite = formData.get(`favorite`) !== null;
-        
-        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender)
+
+        this._onDataChange(this._filmData, apiMethod.UPDATE)
           .then(() => {
-            if (this._popUpRender) {
-              form.style.border = ``;
-              this._popUpRender(true);
-            }
+            form.style.border = ``;
+            this.popUpRender(true);
             this._countingFilters();
             return this._renderCards();
           })
-              .catch((error) => {
-                setErrorEffect(form);
-                form.style.border = `1px solid red`;
-                rateInputs.forEach((elements) => (elements.disabled = false));
-                throw error;
-              });
+          .catch((error) => {
+            setErrorEffect(form);
+            setStateInputsDisabled(false);
+            throw error;
+          });
       });
     });
 
     rateInputs.forEach((input) => {
       input.addEventListener(`change`, () => {
         const formData = new FormData(form);
-        rateInputs.forEach((element) => (element.disabled = true));
+        setStateInputsDisabled(true);
 
         this._filmData.customerRate = _.toNumber(formData.get(`score`));
-        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
+        this._onDataChange(this._filmData, apiMethod.UPDATE)
+          .then(() => {
+            this.popUpRender(true);
+            return this._renderCards();
+          })
+          .catch((error) => {
+            throw error;
+          });
       });
     });
 
@@ -138,7 +158,14 @@ export class MovieController {
 
       resetRateBtn.addEventListener(`click`, () => {
         this._filmData.isWatched = false;
-        this._onDataChange(this._filmData, `update`, this._renderCards, this._popUpRender);
+        this._onDataChange(this._filmData, apiMethod.UPDATE)
+          .then(() => {
+            this.popUpRender(true);
+            return this._renderCards();
+          })
+          .catch((error) => {
+            throw error;
+          });
       });
     }
 
@@ -147,7 +174,6 @@ export class MovieController {
     this.renderComments();
   }
 
-  // Метод отслеживаю закрытие попапа
   trackClosedPopup() {
     const commentArea = document.querySelector(`.film-details__comment-input`);
     const popupTemplate = document.querySelector(`.film-details`);
@@ -196,19 +222,17 @@ export class MovieController {
       });
   }
 
-  // Метод отслеживаю изменения комментариев
   trackComments() {
     const commentsDeleteBtn = document.querySelectorAll(`.film-details__comment-delete`);
     const commentField = document.querySelector(`.film-details__comment-input`);
     const emojiBlock = document.querySelector(`.film-details__add-emoji-label`);
     const emojiItems = document.querySelectorAll(`.film-details__emoji-item`);
+    let emoji = document.querySelector(`.film-details__add-emoji-label img`);
     let emojiLink = null;
 
-    // Лисенеры на инпуты эмодзи
     emojiItems.forEach((input) => input.addEventListener(`change`, () => {
       const emojiTemplate = new Emoji(input.value);
-      const emoji = document.querySelector(`.film-details__add-emoji-label img`);
-
+      emoji = document.querySelector(`.film-details__add-emoji-label img`);
       if (emoji) {
         unrender(emoji);
         emojiLink.removeElement();
@@ -219,24 +243,51 @@ export class MovieController {
       render(emojiBlock, emojiTemplate.getElement());
     }));
 
-    const checkEmojiSrc = () => {
+    const getEmoji = () => {
       const emojiList = document.querySelectorAll(`.film-details__emoji-item`);
       const emotion = _.toArray(emojiList).filter((item) => item.checked);
       return _.isEmpty(emotion) ? `` : emotion[0].value;
     };
 
-    const sendCommentKeysDown = (evt) => {
+    const onPressCommentKeysDown = (evt) => {
       if (evt.ctrlKey && evt.key === `Enter`) {
+        emoji = document.querySelector(`.film-details__add-emoji-label img`);
+
+        switch (true) {
+          case commentField.value === ``:
+            setErrorEffect(commentField);
+            return;
+          case emoji === null:
+            setErrorEffect(emojiBlock);
+            return;
+        }
 
         const entry = {
-          emotion: checkEmojiSrc(),
+          emotion: getEmoji(),
           comment: commentField.value,
           date: Date.now(),
           id: this._filmData.id
         };
 
-        this._onDataChange(new ModelComment(entry), `post`, this._renderCards, this._popUpRender);
-        document.removeEventListener(`keydown`, sendCommentKeysDown);
+        emojiItems.forEach((input) => (input.disabled = true));
+        commentField.style.border = ``;
+        commentField.disabled = true;
+
+        this._onDataChange(new ModelComment(entry), apiMethod.POST)
+          .then((data) => {
+            this._renderCards(data);
+            return this.popUpRender(true);
+          })
+          .catch((error) => {
+            setErrorEffect(commentField);
+            commentField.disabled = false;
+            emojiItems.forEach((input) => {
+              input.disabled = false;
+            });
+            throw error;
+          });
+
+        document.removeEventListener(`keydown`, onPressCommentKeysDown);
       }
     };
 
@@ -245,14 +296,24 @@ export class MovieController {
         evt.preventDefault();
         btn.textContent = `Deleting…`;
         const commentId = btn.getAttribute(`data-id`);
-        this._onDataChange(commentId, `delete`, this._renderCards, this._popUpRender);
+        this._onDataChange(commentId, apiMethod.DELETE)
+          .then((data) => {
+            this._renderCards(data);
+            return this.popUpRender(true);
+          })
+          .catch((error) => {
+            btn.textContent = `Deleting`;
+            throw error;
+          });
       });
     });
 
     commentField
-      .addEventListener(`focus`, () => document.addEventListener(`keydown`, sendCommentKeysDown));
+      .addEventListener(`focus`, () => document
+        .addEventListener(`keydown`, onPressCommentKeysDown));
     commentField
-      .addEventListener(`blur`, () => document.removeEventListener(`keydown`, sendCommentKeysDown));
+      .addEventListener(`blur`, () => document
+        .removeEventListener(`keydown`, onPressCommentKeysDown));
   }
 
   setDefaultView() {

@@ -1,4 +1,4 @@
-import {render, unrender} from '../utils.js';
+import {render, unrender, _} from '../utils.js';
 import {NoFilms} from '../components/no-films.js';
 import {FilmsContainer} from '../components/films-container.js';
 import {FooterStats} from '../components/footer-stats.js';
@@ -8,7 +8,6 @@ import {MostCommented} from '../components/most-commented.js';
 import {MovieController} from './movie-controller.js';
 import {SearchController} from './search-controller.js';
 import {StatisticController} from "./statistic-controller";
-import {_} from "../utils";
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -17,8 +16,8 @@ const cardsAmount = {
 const MIN_PHRASE_LENGTH = 3;
 
 export class PageController {
-  constructor(container, cards, Sort, LoadMoreBtn, SearchResult, onDataChange) {
-    this._container = container;
+  constructor(cards, Sort, LoadMoreBtn, SearchResult) {
+    this._container = document.querySelector(`.main`);
     this._cards = cards;
     this._Sort = new Sort();
     this._totalCardsAmount = this._cards.length;
@@ -28,9 +27,7 @@ export class PageController {
     this._phrase = ``;
     this._SearchResult = new SearchResult();
     this._onChangeView = this.onChangeView.bind(this);
-    this._onDataChange = onDataChange;
     this._renderCards = this.renderCards.bind(this);
-    this._countingFilters = this.countingFilters.bind(this);
     this._statisticController = new StatisticController(this._sortedArr);
     this._extraArr = this._cards.slice(0, 2);
     this._renderIndex = {
@@ -139,22 +136,6 @@ export class PageController {
 
       // Рендеринг «Карточек фильма»
       this._renderCards();
-
-
-      // Доп блоки
-      const extraCardsContainer = document.querySelectorAll(`.films-list--extra`);
-
-      // Рендеринг «Карточек фильма» для Top Rated
-      this._renderCards(
-          this._extraArr,
-          cardsAmount.EXTRA,
-          extraCardsContainer[0].querySelector(`.films-list__container`));
-
-      // Рендеринг «Карточек фильма» для Most Commented
-      this._renderCards(
-          this._extraArr,
-          cardsAmount.EXTRA,
-          extraCardsContainer[1].querySelector(`.films-list__container`));
     }
 
     this.toggleStatisticBlock();
@@ -212,7 +193,7 @@ export class PageController {
     }
 
     cardsArr.forEach((item) => {
-      const movieController = new MovieController(item, container, this._onDataChange, this._onChangeView, this._renderCards, this._countingFilters);
+      const movieController = new MovieController(item, this._onChangeView, this._renderCards);
 
       this._subscriptions.push(movieController._setDefaultView);
       movieController.init();
@@ -290,17 +271,5 @@ export class PageController {
         this._renderCards();
       });
     });
-  }
-
-  countingFilters() {
-    const filter = {
-      watchList: document.querySelector(`.main-navigation__item[href="#watchlist"] span`),
-      history: document.querySelector(`.main-navigation__item[href="#history"] span`),
-      favorite: document.querySelector(`.main-navigation__item[href="#favorites"] span`),
-    };
-
-    filter.watchList.textContent = _.size(this._cards.filter((item) => item.isInWatchList));
-    filter.history.textContent = _.size(this._cards.filter((item) => item.isWatched));
-    filter.favorite.textContent = _.size(this._cards.filter((item) => item.isFavorite));
   }
 }

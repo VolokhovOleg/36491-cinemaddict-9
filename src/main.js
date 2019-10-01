@@ -1,14 +1,13 @@
 import {Search} from './components/search.js';
 import {Rank} from './components/rank.js';
 import {Menu} from './components/menu.js';
-import {render, setErrorEffect} from './utils.js';
+import {render, _} from './utils.js';
 import {LoadMoreBtn} from './components/load-more-btn.js';
 import {PageController} from './controllers/page-controller.js';
 import {Sort} from './components/sort.js';
 import {Statistic} from './components/statistic.js';
 import {SearchResult} from './components/search-result.js';
 import API from './api.js';
-import {_} from "./utils";
 
 const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=5`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
@@ -35,67 +34,27 @@ const countingFilters = () => {
   filter.favorite.textContent = _.size(cards.filter((item) => item.isFavorite));
 };
 
-const onDataChange = (data, apiMethod, renderCards, popUpRender = null) => {
+const loadFilms = () => api.getFilms().then((films) => {
+  cards = films;
+  return cards;
+});
+
+const onDataChange = (data, apiMethod) => {
   let promise = null;
 
   switch (apiMethod) {
-    case `update`:
-      promise = api.update(data);
+    case `update`: promise = api.update(data);
       break;
-    case `post`:
-      const commentArea = document.querySelector(`.film-details__comment-input`);
-      const smileInputs = document.querySelectorAll(`.film-details__emoji-item`);
-      smileInputs.forEach((input) => (input.disabled = true));
-      commentArea.style.border = ``;
-      commentArea.disabled = true;
-      api.postComment(data)
-        .then(() => {
-          return api.getFilms().then((films) => {
-            cards = films;
-
-            if (popUpRender) {
-              popUpRender();
-            }
-
-            return renderCards(cards);
-          });
-        })
-        .catch((error) => {
-          setErrorEffect(commentArea);
-          commentArea.disabled = false;
-          commentArea.style.border = `1px solid red`;
-          smileInputs.forEach((input) => {
-            input.disabled = false;
-          });
-          throw error;
-        });
-
+    case `post`: promise = api.postComment(data).then(() => loadFilms());
       break;
-    case `delete`:
-      api.deleteComment(data)
-        .then(() => {
-          return api.getFilms().then((films) => {
-            cards = films;
-
-            if (popUpRender) {
-              popUpRender();
-            }
-
-            return renderCards(cards);
-          });
-        })
-        .catch((error) => {
-          document
-            .querySelector(`.film-details__comment-delete[data-id="${data}"]`)
-            .textContent = `Delete`;
-          throw error;
-        });
+    case `delete`: promise = api.deleteComment(data).then(() => loadFilms());
       break;
   }
+
   return promise;
 };
 
-export const getComments = (id) => api.getComments(id);
+const getComments = (id) => api.getComments(id);
 
 render(header, new Search().getElement());
 
@@ -109,6 +68,8 @@ api.getFilms().then((films) => {
   cards = films;
   countingFilters();
 
-  const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult, onDataChange);
+  const pageController = new PageController(cards, Sort, LoadMoreBtn, SearchResult);
   pageController.init();
 });
+
+export {onDataChange, getComments, countingFilters};

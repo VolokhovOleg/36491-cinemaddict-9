@@ -42,6 +42,7 @@ export const cutText = (text) => {
   return text;
 };
 export const setErrorEffect = (element) => {
+  element.style.border = `1px solid red`;
   element.classList.add(`shake`);
   setTimeout(() => element.classList.remove(`shake`), 600);
 };
@@ -80,3 +81,6 @@ export const calcPostTime = (dataTime) => {
 };
 export const _ = require(`lodash`);
 export const moment = require(`moment`);
+
+
+// const sortArr = (arr, sortAttr) => arr.sort((a, b) => sortAttr === `releaseDate` ? moment(b[sortAttr]).format(`x`) - moment(a[sortAttr]).format(`x`) : b[sortAttr] - a[sortAttr]);
