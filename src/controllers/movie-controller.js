@@ -69,9 +69,9 @@ export class MovieController {
 
       this._onDataChange(this._filmData, apiMethod.UPDATE)
         .then(() => {
-          btn.classList.toggle(className.active);
           this._setProfileRate();
           this._countingFilters();
+          return this._renderCards();
         })
         .catch((error) => {
           throw error;
@@ -295,7 +295,7 @@ export class MovieController {
       }
     };
 
-    const deleteComment = (arr, commentId) => arr.filter((comment) => comment !== commentId)
+    const deleteComment = (arr, commentId) => arr.filter((comment) => comment !== commentId);
 
     commentsDeleteBtn.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {

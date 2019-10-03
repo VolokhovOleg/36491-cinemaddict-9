@@ -166,6 +166,7 @@ export class PageController {
     const container = document.querySelector(`.films-list__container`);
     const mostTopRatedContainer = extraFilmsContainer[0].querySelector(`.films-list__container`);
     const mostCommentedContainer = extraFilmsContainer[1].querySelector(`.films-list__container`);
+    const filmsMarkUp = document.querySelectorAll(`.film-card`);
 
     if (this._currentFilter !== filterProperty.ALL) {
       switch (this._currentFilter) {
@@ -185,34 +186,43 @@ export class PageController {
       arr = this.makeNewCardOrder(arr);
     }
 
-    if (!isLoadMoreCards) {
-      const filmsMarkUp = document.querySelectorAll(`.film-card`);
-      filmsMarkUp.forEach((item) => unrender(item));
+    if (_.size(arr) !== this._renderIndex.max) {
+      if (!isLoadMoreCards) {
+        filmsMarkUp.forEach((item) => unrender(item));
+      } else {
+        this._renderIndex.min += this._renderAmount;
+        this._renderIndex.max += this._renderAmount;
+      }
+
+      if (_.size(arr) <= this._renderIndex.max) {
+        unrender(this._LoadMoreBtnTemplate);
+        this._renderIndex.max = _.size(arr);
+      }
+
+      arr = arr.slice(this._renderIndex.min, this._renderIndex.max);
     } else {
-      this._renderIndex.min += this._renderAmount;
-      this._renderIndex.max += this._renderAmount;
-    }
+      filmsMarkUp.forEach((item) => unrender(item))
 
-    if (_.size(arr) <= this._renderIndex.max) {
-      unrender(this._LoadMoreBtnTemplate);
+      if (_.size(arr) <= this._renderIndex.max) {
+        unrender(this._LoadMoreBtnTemplate);
+      }
     }
-
-    arr = arr.slice(this._renderIndex.min, this._renderIndex.max);
 
     this.initMovieController(arr, container);
+
     this.renderExtraCards(extraProperty.TOP_RATED, mostTopRatedContainer);
     this.renderExtraCards(extraProperty.MOST_COMMENTED, mostCommentedContainer);
   }
 
   renderExtraCards(property, container) {
-    let films = [];
+    let films = [...this._cards];
 
     switch (property) {
       case extraProperty.TOP_RATED:
-        films = [...this._cards.sort((a, b) => b.rating - a.rating)];
+        films = films.sort((a, b) => b.rating - a.rating);
         break;
       case extraProperty.MOST_COMMENTED:
-        films = [...this._cards.sort((a, b) => _.size(b.comments) - _.size(a.comments))];
+        films = films.sort((a, b) => _.size(b.comments) - _.size(a.comments));
         break;
     }
 
