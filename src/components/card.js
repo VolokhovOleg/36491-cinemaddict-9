@@ -1,4 +1,4 @@
-import {checkWordEnding, cutText, generateRunningTime, moment, _} from './../utils.js';
+import {checkWordEnding, cutText, convertRunningTime, moment, _} from './../utils.js';
 import {AbstractComponent} from './abstract-component.js';
 
 const checkControls = (isCheck) => isCheck ? `film-card__controls-item--active` : ``;
@@ -26,7 +26,7 @@ export class CardsTemplate extends AbstractComponent {
   <p class="film-card__rating">${this._rating}</p>
   <p class="film-card__info">
     <span class="film-card__year">${moment(this._releaseDate).year()}</span>
-    <span class="film-card__duration">${generateRunningTime(this._runningTime)}</span>
+    <span class="film-card__duration">${convertRunningTime(this._runningTime)}</span>
     <span class="film-card__genre">${_.size(this._genres) === 0 ? `` : this._genres[0]}</span>
   </p>
   <img src="./${this._poster}" alt="${this._title}" class="film-card__poster">

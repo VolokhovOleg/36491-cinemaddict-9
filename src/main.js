@@ -9,7 +9,7 @@ import {Statistic} from './components/statistic.js';
 import {SearchResult} from './components/search-result.js';
 import API from './api.js';
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=5`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=2`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
@@ -22,6 +22,29 @@ const filters = {
 };
 let cards = [];
 
+const setProfileRate = () => {
+  const rateName = document.querySelector(`.profile__rating`);
+  const watchedFilmsAmount = _.size(cards.filter((item) => item.isWatched));
+  let profileRate = ``;
+
+  switch (true) {
+    case watchedFilmsAmount === 0:
+      profileRate = ``;
+      break;
+    case watchedFilmsAmount >= 1 && watchedFilmsAmount <= 10:
+      profileRate = `novice`;
+      break;
+    case watchedFilmsAmount >= 11 && watchedFilmsAmount <= 20:
+      profileRate = `fan`;
+      break;
+    case watchedFilmsAmount >= 21:
+      profileRate = `movie buff`;
+      break;
+  }
+
+  rateName.textContent = profileRate;
+};
+
 const countingFilters = () => {
   const filter = {
     watchList: document.querySelector(`.main-navigation__item[href="#watchlist"] span`),
@@ -29,9 +52,9 @@ const countingFilters = () => {
     favorite: document.querySelector(`.main-navigation__item[href="#favorites"] span`),
   };
 
-  filter.watchList.textContent = _.size(cards.filter((item) => item.isInWatchList));
   filter.history.textContent = _.size(cards.filter((item) => item.isWatched));
   filter.favorite.textContent = _.size(cards.filter((item) => item.isFavorite));
+  filter.watchList.textContent = _.size(cards.filter((item) => item.isInWatchList));
 };
 
 const loadFilms = () => api.getFilms().then((films) => {
@@ -72,4 +95,4 @@ api.getFilms().then((films) => {
   pageController.init();
 });
 
-export {onDataChange, getComments, countingFilters};
+export {onDataChange, getComments, countingFilters, setProfileRate};

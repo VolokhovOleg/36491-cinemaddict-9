@@ -4,7 +4,7 @@ import {Comment} from '../components/comment.js';
 import {CardsTemplate} from '../components/card.js';
 import {Emoji} from '../components/emoji.js';
 import {ModelComment} from '../model-comment.js';
-import {getComments, onDataChange, countingFilters} from '../main.js';
+import {getComments, onDataChange, countingFilters, setProfileRate} from '../main.js';
 import CommentsBlock from '../components/comments-block.js';
 
 const DELAY = 300;
@@ -15,14 +15,15 @@ const apiMethod = {
 };
 
 export class MovieController {
-  constructor(filmData, onChangeView, renderCards) {
+  constructor(filmData, container, onChangeView, renderCards) {
     this._filmData = filmData;
     this._onDataChange = onDataChange;
     this._renderCards = renderCards;
     this._onChangeView = onChangeView;
     this._countingFilters = countingFilters;
+    this._setProfileRate = setProfileRate;
     this._setDefaultView = this.setDefaultView.bind(this);
-    this._container = document.querySelector(`.films-list__container`);
+    this._container = container;
     this._popup = new FilmDetail(this._filmData);
     this._comments = [];
     this._body = document.querySelector(`body`);
@@ -69,7 +70,8 @@ export class MovieController {
       this._onDataChange(this._filmData, apiMethod.UPDATE)
         .then(() => {
           btn.classList.toggle(className.active);
-          return this._countingFilters();
+          this._setProfileRate();
+          this._countingFilters();
         })
         .catch((error) => {
           throw error;
@@ -120,8 +122,8 @@ export class MovieController {
         this._onDataChange(this._filmData, apiMethod.UPDATE)
           .then(() => {
             form.style.border = ``;
-            this.popUpRender(true);
             this._countingFilters();
+            this.popUpRender(true);
             return this._renderCards();
           })
           .catch((error) => {
@@ -272,11 +274,13 @@ export class MovieController {
         emojiItems.forEach((input) => (input.disabled = true));
         commentField.style.border = ``;
         commentField.disabled = true;
+        const newComment = new ModelComment(entry);
 
-        this._onDataChange(new ModelComment(entry), apiMethod.POST)
-          .then((data) => {
-            this._renderCards(data);
-            return this.popUpRender(true);
+        this._onDataChange(newComment, apiMethod.POST)
+          .then(() => {
+            this._filmData.comments.push(newComment);
+            this.popUpRender(true);
+            return this._renderCards();
           })
           .catch((error) => {
             setErrorEffect(commentField);
@@ -291,15 +295,18 @@ export class MovieController {
       }
     };
 
+    const deleteComment = (arr, commentId) => arr.filter((comment) => comment !== commentId)
+
     commentsDeleteBtn.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
         btn.textContent = `Deleting…`;
         const commentId = btn.getAttribute(`data-id`);
         this._onDataChange(commentId, apiMethod.DELETE)
-          .then((data) => {
-            this._renderCards(data);
-            return this.popUpRender(true);
+          .then(() => {
+            this._filmData.comments = deleteComment(this._filmData.comments, commentId);
+            this.popUpRender(true);
+            return this._renderCards();
           })
           .catch((error) => {
             btn.textContent = `Deleting`;

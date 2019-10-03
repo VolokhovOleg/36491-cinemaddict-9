@@ -5,6 +5,9 @@ const millisecondsInWords = {
   ONE_DAY: 86400000,
 };
 
+export const _ = require(`lodash`);
+export const moment = require(`moment`);
+
 export const createElement = (template) => {
   const newElement = document.createElement(`div`);
 
@@ -21,7 +24,7 @@ export const unrender = (element) => {
 };
 export const checkWordEnding = (commentsAmount) => commentsAmount !== 1 ? `s` : ``;
 export const checkChecked = (elem) => elem ? `checked` : ``;
-export const generateRunningTime = (time) => {
+export const convertRunningTime = (time) => {
   let formattedTime = ``;
 
   if ((time - time % 60) / 60 !== 0) {
@@ -79,8 +82,3 @@ export const calcPostTime = (dataTime) => {
   }
   return phrase;
 };
-export const _ = require(`lodash`);
-export const moment = require(`moment`);
-
-
-// const sortArr = (arr, sortAttr) => arr.sort((a, b) => sortAttr === `releaseDate` ? moment(b[sortAttr]).format(`x`) - moment(a[sortAttr]).format(`x`) : b[sortAttr] - a[sortAttr]);

@@ -1,4 +1,4 @@
-import {checkWordEnding, checkChecked, generateRunningTime, moment, _} from './../utils.js';
+import {checkWordEnding, checkChecked, convertRunningTime, moment, _} from './../utils.js';
 import {AbstractComponent} from './abstract-component.js';
 
 const isCustomRate = (customRate) => `<p class="film-details__user-rating">Your rate ${customRate}</p>`;
@@ -119,7 +119,7 @@ export class FilmDetail extends AbstractComponent {
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Runtime</td>
-              <td class="film-details__cell">${generateRunningTime(this._runningTime)}</td>
+              <td class="film-details__cell">${convertRunningTime(this._runningTime)}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Country</td>
