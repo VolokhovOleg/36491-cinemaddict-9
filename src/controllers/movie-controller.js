@@ -281,11 +281,12 @@ export class MovieController {
         emojiItems.forEach((input) => (input.disabled = true));
         this._commentField.style.border = ``;
         this._commentField.disabled = true;
-        const newComment = new ModelComment(entry);
+        const newCommentData = new ModelComment(entry);
 
-        this._onDataChange(newComment, apiMethod.POST)
-          .then(() => {
-            this._filmData.comments.push(newComment);
+        this._onDataChange(newCommentData, apiMethod.POST)
+          .then((data) => {
+            const newComments = data.filter((item) => item.id === newCommentData.id);
+            this._filmData.comments = newComments.map((item) => DOMPurify.sanitize(item));
             this.popUpRender(true);
             return this._renderCards(true);
           })

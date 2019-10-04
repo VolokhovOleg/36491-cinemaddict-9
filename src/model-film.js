@@ -1,4 +1,4 @@
-import {DOMPurify, convertWatchingDate} from './utils.js';
+import {DOMPurify, convertWatchingDate, convertNaN} from './utils.js';
 
 export class ModelFilm {
   constructor(data) {
@@ -17,7 +17,7 @@ export class ModelFilm {
     this.customerRate = parseInt(DOMPurify.sanitize(data[`user_details`][`personal_rating`]), 10);
     this.releaseDate = DOMPurify.sanitize(data[`film_info`][`release`][`date`]);
     this.country = DOMPurify.sanitize(data[`film_info`][`release`][`release_country`]);
-    this.ratingSystem = parseInt(DOMPurify.sanitize(data[`film_info`][`age_rating`]), 10);
+    this.ratingSystem = convertNaN(parseInt(DOMPurify.sanitize(data[`film_info`][`age_rating`]), 10));
     this.runningTime = parseInt(DOMPurify.sanitize(data[`film_info`][`runtime`]), 10);
     this.genres = data[`film_info`][`genre`].map((item) => DOMPurify.sanitize(item));
     this.description = DOMPurify.sanitize(data[`film_info`][`description`]);
@@ -25,13 +25,7 @@ export class ModelFilm {
   }
 
   static parseFilm(data) {
-    let i = new ModelFilm(data);
-    console.log(
-      typeof i.id, typeof data[`id`],
-      typeof i.watchingDate, typeof data[`user_details`][`watching_date`],
-    );
-    return i;
-
+    return new ModelFilm(data);
   }
 
   static parseFilms(data) {

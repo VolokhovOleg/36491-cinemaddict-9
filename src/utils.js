@@ -99,3 +99,4 @@ export const convertWatchingDate = (date) => {
 
   return convertedDate;
 };
+export const convertNaN = (data) => isNaN(data) ? 0 : data;
