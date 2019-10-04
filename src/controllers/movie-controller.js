@@ -77,7 +77,7 @@ export class MovieController {
         .then(() => {
           this._setProfileRate();
           this._countingFilters();
-          return this._renderCards();
+          return this._renderCards(true);
         })
         .catch((error) => {
           throw error;
@@ -125,7 +125,7 @@ export class MovieController {
             form.style.border = ``;
             this._countingFilters();
             this.popUpRender(true);
-            return this._renderCards();
+            return this._renderCards(true);
           })
           .catch((error) => {
             input.checked = !input.checked;
@@ -145,7 +145,7 @@ export class MovieController {
         this._onDataChange(this._filmData, apiMethod.UPDATE)
           .then(() => {
             this.popUpRender(true);
-            return this._renderCards();
+            return this._renderCards(true);
           })
           .catch((error) => {
             input.checked = false;
@@ -167,7 +167,7 @@ export class MovieController {
         this._onDataChange(this._filmData, apiMethod.UPDATE)
           .then(() => {
             this.popUpRender(true);
-            return this._renderCards();
+            return this._renderCards(true);
           })
           .catch((error) => {
             throw error;
@@ -287,7 +287,7 @@ export class MovieController {
           .then(() => {
             this._filmData.comments.push(newComment);
             this.popUpRender(true);
-            return this._renderCards();
+            return this._renderCards(true);
           })
           .catch((error) => {
             setErrorEffect(this._commentField);
@@ -314,7 +314,7 @@ export class MovieController {
           .then(() => {
             this._filmData.comments = deleteComment(this._filmData.comments, commentId);
             this.popUpRender(true);
-            return this._renderCards();
+            return this._renderCards(true);
           })
           .catch((error) => {
             this._setStateElementsDisabled(commentsDeleteBtn, false);

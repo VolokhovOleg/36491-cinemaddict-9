@@ -115,7 +115,7 @@ export class PageController {
 
       if (this._totalCardsAmount > cardsAmount.DEFAULT) {
         render(filmsList, this._LoadMoreBtnTemplate);
-        this._LoadMoreBtnTemplate.addEventListener(`click`, () => this._renderCards(this._cards, true));
+        this._LoadMoreBtnTemplate.addEventListener(`click`, () => this._renderCards(false, this._cards, true));
       }
 
       render(this._filmBlock, new TopRated().getElement());
@@ -158,16 +158,16 @@ export class PageController {
 
         arr = searchController.searchFilm(this._phrase, this._cards);
         this.resetLoadMoreBtn();
-        this._renderCards(arr);
+        this._renderCards(false, arr);
       } else if (!_.size(this._phrase)) {
         searchController.cancelSearch();
         this.resetLoadMoreBtn();
-        this._renderCards(this._cards);
+        this._renderCards(false, this._cards);
       }
     });
   }
 
-  renderCards(arr = [...this._cards], isLoadMoreCards = false) {
+  renderCards(isDateChange = false, arr = [...this._cards], isLoadMoreCards = false) {
     const extraFilmsContainer = document.querySelectorAll(`.films-list--extra`);
     const container = document.querySelector(`.films-list__container`);
     const mostTopRatedContainer = extraFilmsContainer[0].querySelector(`.films-list__container`);
@@ -192,25 +192,30 @@ export class PageController {
       arr = this.makeNewCardOrder(arr);
     }
 
-    if (_.size(arr) !== this._renderIndex.max) {
-      if (!isLoadMoreCards) {
-        filmsMarkUp.forEach((item) => unrender(item));
-      } else {
-        this._renderIndex.min += this._renderAmount;
-        this._renderIndex.max += this._renderAmount;
-      }
-
-      if (_.size(arr) <= this._renderIndex.max) {
-        unrender(this._LoadMoreBtnTemplate);
-        this._renderIndex.max = _.size(arr);
-      }
-
-      arr = arr.slice(this._renderIndex.min, this._renderIndex.max);
-    } else {
+    if (isDateChange) {
       filmsMarkUp.forEach((item) => unrender(item));
+      arr = arr.slice(0, this._renderIndex.max);
+    } else {
+      if (_.size(arr) !== this._renderIndex.max) {
+        if (!isLoadMoreCards) {
+          filmsMarkUp.forEach((item) => unrender(item));
+        } else {
+          this._renderIndex.min += this._renderAmount;
+          this._renderIndex.max += this._renderAmount;
+        }
 
-      if (_.size(arr) <= this._renderIndex.max) {
-        unrender(this._LoadMoreBtnTemplate);
+        if (_.size(arr) <= this._renderIndex.max) {
+          unrender(this._LoadMoreBtnTemplate);
+          this._renderIndex.max = _.size(arr);
+        }
+
+        arr = arr.slice(this._renderIndex.min, this._renderIndex.max);
+      } else {
+        filmsMarkUp.forEach((item) => unrender(item));
+
+        if (_.size(arr) <= this._renderIndex.max) {
+          unrender(this._LoadMoreBtnTemplate);
+        }
       }
     }
 

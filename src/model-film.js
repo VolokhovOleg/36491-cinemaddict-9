@@ -26,7 +26,10 @@ export class ModelFilm {
 
   static parseFilm(data) {
     let i = new ModelFilm(data);
-    console.log(i.watchingDate, data[`user_details`][`watching_date`]);
+    console.log(
+      typeof i.id, typeof data[`id`],
+      typeof i.watchingDate, typeof data[`user_details`][`watching_date`],
+    );
     return i;
 
   }
