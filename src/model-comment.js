@@ -1,12 +1,12 @@
-import {moment} from './utils.js';
+import {moment, DOMPurify} from './utils.js';
 
 export class ModelComment {
   constructor(data) {
-    this.id = data[`id`];
-    this.emoji = data[`emotion`];
-    this.author = data[`author`];
-    this.content = data[`comment`];
-    this.date = data[`date`];
+    this.id = DOMPurify.sanitize(data[`id`]);
+    this.emoji = DOMPurify.sanitize(data[`emotion`]);
+    this.author = DOMPurify.sanitize(data[`author`]);
+    this.content = DOMPurify.sanitize(data[`comment`]);
+    this.date = DOMPurify.sanitize(moment(data[`date`]).toISOString());
   }
 
   static parseComment(data) {
@@ -19,9 +19,9 @@ export class ModelComment {
 
   toRAW() {
     return {
-      "comment": this.content,
-      "date": moment(this.date).format(),
-      "emotion": this.emoji,
+      'comment': this.content,
+      'date': moment(this.date).format(),
+      'emotion': this.emoji,
     };
   }
 }

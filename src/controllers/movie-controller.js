@@ -6,6 +6,7 @@ import {Emoji} from '../components/emoji.js';
 import {ModelComment} from '../model-comment.js';
 import {getComments, onDataChange, countingFilters, setProfileRate} from '../main.js';
 import CommentsBlock from '../components/comments-block.js';
+import {DOMPurify} from './../utils.js';
 
 const DELAY = 300;
 const apiMethod = {
@@ -27,6 +28,11 @@ export class MovieController {
     this._popup = new FilmDetail(this._filmData);
     this._comments = [];
     this._body = document.querySelector(`body`);
+    this._commentField = ``;
+    this._setStateElementsDisabled = (elements, state) => elements.forEach((items) => {
+      items.disabled = state;
+      return items.disabled;
+    });
   }
 
   init() {
@@ -107,11 +113,6 @@ export class MovieController {
     const form = document.querySelector(`.film-details__inner`);
     const rateBlock = document.querySelector(`.film-details__user-rating-wrap`);
 
-    const setStateInputsDisabled = (state) => rateInputs.forEach((elements) => {
-      elements.disabled = state;
-      return elements.disabled;
-    });
-
     controlsInputs.forEach((input) => {
       input.addEventListener(`change`, () => {
         const formData = new FormData(form);
@@ -127,8 +128,9 @@ export class MovieController {
             return this._renderCards();
           })
           .catch((error) => {
+            input.checked = !input.checked;
             setErrorEffect(form);
-            setStateInputsDisabled(false);
+            this._setStateElementsDisabled(rateInputs, false);
             throw error;
           });
       });
@@ -137,7 +139,7 @@ export class MovieController {
     rateInputs.forEach((input) => {
       input.addEventListener(`change`, () => {
         const formData = new FormData(form);
-        setStateInputsDisabled(true);
+        this._setStateElementsDisabled(rateInputs, true);
 
         this._filmData.customerRate = _.toNumber(formData.get(`score`));
         this._onDataChange(this._filmData, apiMethod.UPDATE)
@@ -146,6 +148,8 @@ export class MovieController {
             return this._renderCards();
           })
           .catch((error) => {
+            input.checked = false;
+            this._setStateElementsDisabled(rateInputs, false);
             throw error;
           });
       });
@@ -177,7 +181,6 @@ export class MovieController {
   }
 
   trackClosedPopup() {
-    const commentArea = document.querySelector(`.film-details__comment-input`);
     const popupTemplate = document.querySelector(`.film-details`);
 
     const onEscKeyDown = (evt) => {
@@ -196,15 +199,15 @@ export class MovieController {
 
     addOnEscListener();
 
-    commentArea.addEventListener(`focus`, removeOnEscListener);
-    commentArea.addEventListener(`blur`, addOnEscListener);
+    this._commentField.addEventListener(`focus`, removeOnEscListener);
+    this._commentField.addEventListener(`blur`, addOnEscListener);
 
     document.querySelector(`.film-details__close-btn`).addEventListener(`click`, () => {
       unrender(popupTemplate);
       removeOnEscListener();
       this._popup.removeElement();
-      commentArea.removeEventListener(`focus`, removeOnEscListener);
-      commentArea.removeEventListener(`blur`, addOnEscListener);
+      this._commentField.removeEventListener(`focus`, removeOnEscListener);
+      this._commentField.removeEventListener(`blur`, addOnEscListener);
       this._body.style = ``;
     });
   }
@@ -218,15 +221,17 @@ export class MovieController {
         const commentsBlock = new CommentsBlock(this._comments);
         render(commentsWrap, commentsBlock.getElement());
         const commentList = commentsWrap.querySelector(`.film-details__comments-list`);
-        this._comments.forEach((comment) => render(commentList, new Comment(comment).getElement()));
-        this.trackComments();
+        return this._comments.forEach((comment) => render(commentList, new Comment(comment).getElement()));
+      })
+      .then(() => {
+        this._commentField = document.querySelector(`.film-details__comment-input`);
         this.trackClosedPopup();
+        return this.trackComments();
       });
   }
 
   trackComments() {
     const commentsDeleteBtn = document.querySelectorAll(`.film-details__comment-delete`);
-    const commentField = document.querySelector(`.film-details__comment-input`);
     const emojiBlock = document.querySelector(`.film-details__add-emoji-label`);
     const emojiItems = document.querySelectorAll(`.film-details__emoji-item`);
     let emoji = document.querySelector(`.film-details__add-emoji-label img`);
@@ -235,6 +240,8 @@ export class MovieController {
     emojiItems.forEach((input) => input.addEventListener(`change`, () => {
       const emojiTemplate = new Emoji(input.value);
       emoji = document.querySelector(`.film-details__add-emoji-label img`);
+      emojiBlock.style.border = ``;
+
       if (emoji) {
         unrender(emoji);
         emojiLink.removeElement();
@@ -256,8 +263,8 @@ export class MovieController {
         emoji = document.querySelector(`.film-details__add-emoji-label img`);
 
         switch (true) {
-          case commentField.value === ``:
-            setErrorEffect(commentField);
+          case this._commentField.value === ``:
+            setErrorEffect(this._commentField);
             return;
           case emoji === null:
             setErrorEffect(emojiBlock);
@@ -265,15 +272,15 @@ export class MovieController {
         }
 
         const entry = {
-          emotion: getEmoji(),
-          comment: commentField.value,
-          date: Date.now(),
-          id: this._filmData.id
+          emotion: DOMPurify.sanitize(getEmoji()),
+          comment: DOMPurify.sanitize(this._commentField.value),
+          date: parseInt(DOMPurify.sanitize(Date.now()), 10),
+          id: this._filmData.id,
         };
 
         emojiItems.forEach((input) => (input.disabled = true));
-        commentField.style.border = ``;
-        commentField.disabled = true;
+        this._commentField.style.border = ``;
+        this._commentField.disabled = true;
         const newComment = new ModelComment(entry);
 
         this._onDataChange(newComment, apiMethod.POST)
@@ -283,8 +290,8 @@ export class MovieController {
             return this._renderCards();
           })
           .catch((error) => {
-            setErrorEffect(commentField);
-            commentField.disabled = false;
+            setErrorEffect(this._commentField);
+            this._commentField.disabled = false;
             emojiItems.forEach((input) => {
               input.disabled = false;
             });
@@ -300,6 +307,7 @@ export class MovieController {
     commentsDeleteBtn.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
         evt.preventDefault();
+        this._setStateElementsDisabled(commentsDeleteBtn, true);
         btn.textContent = `Deleting…`;
         const commentId = btn.getAttribute(`data-id`);
         this._onDataChange(commentId, apiMethod.DELETE)
@@ -309,16 +317,17 @@ export class MovieController {
             return this._renderCards();
           })
           .catch((error) => {
-            btn.textContent = `Deleting`;
+            this._setStateElementsDisabled(commentsDeleteBtn, false);
+            btn.textContent = `Delete`;
             throw error;
           });
       });
     });
 
-    commentField
+    this._commentField
       .addEventListener(`focus`, () => document
         .addEventListener(`keydown`, onPressCommentKeysDown));
-    commentField
+    this._commentField
       .addEventListener(`blur`, () => document
         .removeEventListener(`keydown`, onPressCommentKeysDown));
   }

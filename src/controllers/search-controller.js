@@ -3,8 +3,6 @@ import {NoSearchResult} from '../components/no-search-message.js';
 
 export class SearchController {
   constructor() {
-    this._cards = [];
-    this._searchPhrase = ``;
     this._mainNavigation = document.querySelector(`.main-navigation`);
     this._sort = document.querySelector(`.sort`);
     this._searchResult = document.querySelector(`.result`);
@@ -14,9 +12,7 @@ export class SearchController {
   }
 
   searchFilm(searchPhrase, cards) {
-    this._cards = cards;
-    this._searchPhrase = searchPhrase;
-    const pattern = new RegExp(this._searchPhrase, `i`);
+    const pattern = new RegExp(searchPhrase, `i`);
 
     this._mainNavigation.classList.add(`visually-hidden`);
     this._sort.classList.add(`visually-hidden`);
@@ -26,7 +22,7 @@ export class SearchController {
     this._extraCardsContainer.forEach((item) => item.classList.add(`visually-hidden`));
 
     const searchResultCount = this._searchResult.querySelector(`.result__count`);
-    const arr = this._cards.filter((element) => pattern.exec(element.title) !== null);
+    const arr = cards.filter((element) => pattern.exec(element.title) !== null);
 
     if (_.size(arr) === 0) {
       render(this._filmsList, new NoSearchResult().getElement());

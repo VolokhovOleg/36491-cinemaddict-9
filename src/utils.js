@@ -7,7 +7,7 @@ const millisecondsInWords = {
 
 export const _ = require(`lodash`);
 export const moment = require(`moment`);
-
+export const DOMPurify = require(`dompurify`);
 export const createElement = (template) => {
   const newElement = document.createElement(`div`);
 
@@ -81,4 +81,21 @@ export const calcPostTime = (dataTime) => {
       break;
   }
   return phrase;
+};
+export const convertWatchingDate = (date) => {
+  let convertedDate = null;
+
+  switch (typeof date) {
+    case `number`:
+      convertedDate = parseInt(DOMPurify.sanitize(date), 10);
+      break;
+    case `string`:
+      convertedDate = parseInt(moment(DOMPurify.sanitize(date)).format(`x`), 10);
+      break;
+    default:
+      convertedDate = null;
+      break;
+  }
+
+  return convertedDate;
 };

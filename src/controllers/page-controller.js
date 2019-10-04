@@ -7,8 +7,8 @@ import {TopRated} from '../components/top-rated.js';
 import {MostCommented} from '../components/most-commented.js';
 import {MovieController} from './movie-controller.js';
 import {SearchController} from './search-controller.js';
-import {StatisticController} from "./statistic-controller";
-import {setProfileRate} from "./../main.js";
+import {StatisticController} from './statistic-controller.js';
+import {setProfileRate} from './../main.js';
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -136,9 +136,11 @@ export class PageController {
       const searchController = new SearchController();
 
       searchController.cancelSearch();
-      this._cards = [...this._cards];
-      this._totalCardsAmount = this._cards.length;
-      this._renderCards(this._cards);
+      this._renderIndex = {
+        min: 0,
+        max: 5,
+      };
+      this._renderCards();
       this.resetLoadMoreBtn();
     });
 
@@ -147,21 +149,25 @@ export class PageController {
       const searchController = new SearchController();
 
       if (_.size(this._phrase) >= MIN_PHRASE_LENGTH) {
+        this._currentSort = sortProperty.DEFAULT;
+        this._currentFilter = filterProperty.ALL;
+
         if (this._isStatisticsShowed) {
           this.hideStatistics();
         }
+
         arr = searchController.searchFilm(this._phrase, this._cards);
         this.resetLoadMoreBtn();
         this._renderCards(arr);
       } else if (!_.size(this._phrase)) {
         searchController.cancelSearch();
         this.resetLoadMoreBtn();
-        this._renderCards();
+        this._renderCards(this._cards);
       }
     });
   }
 
-  renderCards(arr = this._cards, isLoadMoreCards = false) {
+  renderCards(arr = [...this._cards], isLoadMoreCards = false) {
     const extraFilmsContainer = document.querySelectorAll(`.films-list--extra`);
     const container = document.querySelector(`.films-list__container`);
     const mostTopRatedContainer = extraFilmsContainer[0].querySelector(`.films-list__container`);
@@ -201,7 +207,7 @@ export class PageController {
 
       arr = arr.slice(this._renderIndex.min, this._renderIndex.max);
     } else {
-      filmsMarkUp.forEach((item) => unrender(item))
+      filmsMarkUp.forEach((item) => unrender(item));
 
       if (_.size(arr) <= this._renderIndex.max) {
         unrender(this._LoadMoreBtnTemplate);

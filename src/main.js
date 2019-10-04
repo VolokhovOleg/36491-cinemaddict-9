@@ -9,7 +9,7 @@ import {Statistic} from './components/statistic.js';
 import {SearchResult} from './components/search-result.js';
 import API from './api.js';
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=2`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=10`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
