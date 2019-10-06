@@ -1,7 +1,7 @@
 import {render, unrender, setErrorEffect} from '../utils.js';
 import _ from 'lodash';
 import DOMPurify from 'dompurify';
-import {getComments, onDataChange, countingFilters, setProfileRate} from '../main.js';
+import {getComments, onDataChange, countFilters, setProfileRate} from '../main.js';
 import FilmDetail from '../components/film-detail.js';
 import Comment from '../components/comment.js';
 import CardsTemplate from '../components/card.js';
@@ -10,7 +10,7 @@ import ModelComment from '../model-comment.js';
 import CommentsBlock from '../components/comments-block.js';
 
 const DELAY = 300;
-const apiMethod = {
+const ApiMethod = {
   DELETE: `delete`,
   UPDATE: `update`,
   POST: `post`,
@@ -22,7 +22,7 @@ class MovieController {
     this._onDataChange = onDataChange;
     this._renderCards = renderCards;
     this._onChangeView = onChangeView;
-    this._countingFilters = countingFilters;
+    this._countingFilters = countFilters;
     this._setProfileRate = setProfileRate;
     this._setDefaultView = this.setDefaultView.bind(this);
     this._container = container;
@@ -76,7 +76,7 @@ class MovieController {
           break;
       }
 
-      this._onDataChange(this._filmData, apiMethod.UPDATE)
+      this._onDataChange(this._filmData, ApiMethod.UPDATE)
         .then(() => {
           this._setProfileRate();
           this._countingFilters();
@@ -124,7 +124,7 @@ class MovieController {
         this._filmData.isFavorite = formData.get(`favorite`) !== null;
         this._filmData.watchingDate = this._filmData.isWatched ? Date.now() : null;
 
-        this._onDataChange(this._filmData, apiMethod.UPDATE)
+        this._onDataChange(this._filmData, ApiMethod.UPDATE)
           .then(() => {
             form.style.border = ``;
             this._countingFilters();
@@ -146,7 +146,7 @@ class MovieController {
         this._setStateElementsDisabled(rateInputs, true);
 
         this._filmData.customerRate = _.toNumber(formData.get(`score`));
-        this._onDataChange(this._filmData, apiMethod.UPDATE)
+        this._onDataChange(this._filmData, ApiMethod.UPDATE)
           .then(() => {
             this.popUpRender(true);
             return this._renderCards(true);
@@ -168,7 +168,7 @@ class MovieController {
 
       resetRateBtn.addEventListener(`click`, () => {
         this._filmData.isWatched = false;
-        this._onDataChange(this._filmData, apiMethod.UPDATE)
+        this._onDataChange(this._filmData, ApiMethod.UPDATE)
           .then(() => {
             this.popUpRender(true);
             return this._renderCards(true);
@@ -287,7 +287,7 @@ class MovieController {
         this._commentField.disabled = true;
         const newCommentData = new ModelComment(entry);
 
-        this._onDataChange(newCommentData, apiMethod.POST)
+        this._onDataChange(newCommentData, ApiMethod.POST)
           .then((data) => {
             const newComments = data.filter((item) => item.id === newCommentData.id);
             this._filmData.comments = newComments.map((item) => DOMPurify.sanitize(item));
@@ -315,7 +315,7 @@ class MovieController {
         this._setStateElementsDisabled(commentsDeleteBtn, true);
         btn.textContent = `Deleting…`;
         const commentId = btn.getAttribute(`data-id`);
-        this._onDataChange(commentId, apiMethod.DELETE)
+        this._onDataChange(commentId, ApiMethod.DELETE)
           .then(() => {
             this._filmData.comments = deleteComment(this._filmData.comments, commentId);
             this.popUpRender(true);

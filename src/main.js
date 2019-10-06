@@ -15,8 +15,8 @@ import {unrender} from "./utils";
 const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
-const preloader = new Preloader();
 
+const preloader = new Preloader();
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
 const menuFilter = {
@@ -27,7 +27,6 @@ const menuFilter = {
 let cards = [];
 
 const setProfileRate = () => {
-  const rateName = document.querySelector(`.profile__rating`);
   const watchedFilmsAmount = _.size(cards.filter((item) => item.isWatched));
   let profileRate = ``;
 
@@ -50,13 +49,7 @@ const setProfileRate = () => {
   return profileRate;
 };
 
-const countingFilters = () => {
-  const filter = {
-    watchList: document.querySelector(`.main-navigation__item[href="#watchlist"] span`),
-    history: document.querySelector(`.main-navigation__item[href="#history"] span`),
-    favorite: document.querySelector(`.main-navigation__item[href="#favorites"] span`),
-  };
-
+const countFilters = () => {
   filter.history.textContent = _.size(cards.filter((item) => item.isWatched));
   filter.favorite.textContent = _.size(cards.filter((item) => item.isFavorite));
   filter.watchList.textContent = _.size(cards.filter((item) => item.isInWatchList));
@@ -88,7 +81,16 @@ render(header, new Search().getElement());
 
 render(header, new Rank().getElement());
 
+const rateName = document.querySelector(`.profile__rating`);
+
+
 render(main, new Menu(menuFilter).getElement());
+
+const filter = {
+  watchList: document.querySelector(`.main-navigation__item[href="#watchlist"] span`),
+  history: document.querySelector(`.main-navigation__item[href="#history"] span`),
+  favorite: document.querySelector(`.main-navigation__item[href="#favorites"] span`),
+};
 
 render(main, preloader.getElement());
 
@@ -96,11 +98,11 @@ render(main, new StatisticContainer().getElement());
 
 api.getFilms().then((films) => {
   cards = films;
-  countingFilters();
+  countFilters();
   const pageController = new PageController(cards, Sort, LoadMoreBtn, SearchResult);
   unrender(preloader.getElement());
   preloader.removeElement();
   pageController.init();
 });
 
-export {onDataChange, getComments, countingFilters, setProfileRate};
+export {onDataChange, getComments, countFilters, setProfileRate};
