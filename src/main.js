@@ -1,24 +1,28 @@
-import {Search} from './components/search.js';
-import {Rank} from './components/rank.js';
-import {Menu} from './components/menu.js';
-import {render, _} from './utils.js';
-import {LoadMoreBtn} from './components/load-more-btn.js';
-import {PageController} from './controllers/page-controller.js';
-import {Sort} from './components/sort.js';
-import {Statistic} from './components/statistic.js';
-import {SearchResult} from './components/search-result.js';
+import {render} from './utils.js';
+import _ from 'lodash';
 import API from './api.js';
+import Search from './components/search.js';
+import Rank from './components/rank.js';
+import Menu from './components/menu.js';
+import LoadMoreBtn from './components/load-more-btn.js';
+import PageController from './controllers/page-controller.js';
+import Sort from './components/sort.js';
+import StatisticContainer from './components/statistic-container.js';
+import SearchResult from './components/search-result.js';
+import Preloader from './components/preloader.js';
+import {unrender} from "./utils";
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=10`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
+const preloader = new Preloader();
 
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
-const filters = {
-  watchList: [],
-  history: [],
-  favorite: [],
+const menuFilter = {
+  watchList: ``,
+  history: ``,
+  favorite: ``,
 };
 let cards = [];
 
@@ -43,6 +47,7 @@ const setProfileRate = () => {
   }
 
   rateName.textContent = profileRate;
+  return profileRate;
 };
 
 const countingFilters = () => {
@@ -83,15 +88,18 @@ render(header, new Search().getElement());
 
 render(header, new Rank().getElement());
 
-render(main, new Menu(filters).getElement());
+render(main, new Menu(menuFilter).getElement());
 
-render(main, new Statistic().getElement());
+render(main, preloader.getElement());
+
+render(main, new StatisticContainer().getElement());
 
 api.getFilms().then((films) => {
   cards = films;
   countingFilters();
-
   const pageController = new PageController(cards, Sort, LoadMoreBtn, SearchResult);
+  unrender(preloader.getElement());
+  preloader.removeElement();
   pageController.init();
 });
 

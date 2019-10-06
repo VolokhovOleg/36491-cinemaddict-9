@@ -1,12 +1,13 @@
-import {FilmDetail} from '../components/film-detail.js';
-import {render, unrender, setErrorEffect, _} from '../utils.js';
-import {Comment} from '../components/comment.js';
-import {CardsTemplate} from '../components/card.js';
-import {Emoji} from '../components/emoji.js';
-import {ModelComment} from '../model-comment.js';
+import {render, unrender, setErrorEffect} from '../utils.js';
+import _ from 'lodash';
+import DOMPurify from 'dompurify';
 import {getComments, onDataChange, countingFilters, setProfileRate} from '../main.js';
+import FilmDetail from '../components/film-detail.js';
+import Comment from '../components/comment.js';
+import CardsTemplate from '../components/card.js';
+import Emoji from '../components/emoji.js';
+import ModelComment from '../model-comment.js';
 import CommentsBlock from '../components/comments-block.js';
-import {DOMPurify} from './../utils.js';
 
 const DELAY = 300;
 const apiMethod = {
@@ -15,7 +16,7 @@ const apiMethod = {
   POST: `post`,
 };
 
-export class MovieController {
+class MovieController {
   constructor(filmData, container, onChangeView, renderCards) {
     this._filmData = filmData;
     this._onDataChange = onDataChange;
@@ -58,6 +59,7 @@ export class MovieController {
           break;
         case btnClasses.has(className.watched) && !isBtnActive:
           this._filmData.isWatched = true;
+          this._filmData.watchingDate = Date.now();
           break;
         case btnClasses.has(className.favorite) && !isBtnActive:
           this._filmData.isFavorite = true;
@@ -67,6 +69,7 @@ export class MovieController {
           break;
         case btnClasses.has(className.watched) && isBtnActive:
           this._filmData.isWatched = false;
+          this._filmData.watchingDate = null;
           break;
         case btnClasses.has(className.favorite) && isBtnActive:
           this._filmData.isFavorite = false;
@@ -119,6 +122,7 @@ export class MovieController {
         this._filmData.isInWatchList = formData.get(`watchlist`) !== null;
         this._filmData.isWatched = formData.get(`watched`) !== null;
         this._filmData.isFavorite = formData.get(`favorite`) !== null;
+        this._filmData.watchingDate = this._filmData.isWatched ? Date.now() : null;
 
         this._onDataChange(this._filmData, apiMethod.UPDATE)
           .then(() => {
@@ -303,7 +307,7 @@ export class MovieController {
       }
     };
 
-    const deleteComment = (arr, commentId) => arr.filter((comment) => comment !== commentId);
+    const deleteComment = (cards, commentId) => cards.filter((comment) => comment !== commentId);
 
     commentsDeleteBtn.forEach((btn) => {
       btn.addEventListener(`click`, (evt) => {
@@ -340,3 +344,5 @@ export class MovieController {
     }
   }
 }
+
+export default MovieController;

@@ -1,6 +1,6 @@
-import {AbstractComponent} from './abstract-component.js';
+import AbstractComponent from './abstract-component.js';
 
-export class StatisticRank extends AbstractComponent {
+class StatisticRank extends AbstractComponent {
   constructor(rank) {
     super();
     this._rank = rank;
@@ -14,3 +14,6 @@ export class StatisticRank extends AbstractComponent {
       </p>`;
   }
 }
+
+
+export default StatisticRank;

@@ -1,6 +1,6 @@
 import AbstractComponent from './abstract-component.js';
 
-class TopRated extends AbstractComponent {
+class TopRate extends AbstractComponent {
   getTemplate() {
     return `<section class="films-list--extra">
   <h2 class="films-list__title">Top rated</h2>
@@ -10,4 +10,4 @@ class TopRated extends AbstractComponent {
   }
 }
 
-export default TopRated;
+export default TopRate;

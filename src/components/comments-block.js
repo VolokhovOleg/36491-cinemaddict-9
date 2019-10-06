@@ -1,5 +1,6 @@
-import {AbstractComponent} from './abstract-component.js';
-import {checkWordEnding, _} from './../utils.js';
+import AbstractComponent from './abstract-component.js';
+import {checkWordEnding} from './../utils.js';
+import _ from 'lodash';
 
 const changeCommentsAmount = (amount) => amount;
 

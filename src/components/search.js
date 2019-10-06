@@ -1,6 +1,6 @@
-import {AbstractComponent} from './abstract-component.js';
+import AbstractComponent from './abstract-component.js';
 
-export class Search extends AbstractComponent {
+class Search extends AbstractComponent {
   getTemplate() {
     return `<form class="header__search search">
     <input type="text" name="search" class="search__field" placeholder="Search movies">
@@ -12,3 +12,5 @@ export class Search extends AbstractComponent {
   </form>`;
   }
 }
+
+export default Search;

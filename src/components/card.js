@@ -1,9 +1,12 @@
-import {checkWordEnding, cutText, convertRunningTime, moment, _} from './../utils.js';
-import {AbstractComponent} from './abstract-component.js';
+import {checkWordEnding, cutText, convertRunningTime} from './../utils.js';
+import moment from 'moment';
+import _ from 'lodash';
+
+import AbstractComponent from './abstract-component.js';
 
 const checkControls = (isCheck) => isCheck ? `film-card__controls-item--active` : ``;
 
-export class CardsTemplate extends AbstractComponent {
+class CardsTemplate extends AbstractComponent {
   constructor({title, rating, releaseDate, runningTime, genres, poster, description, comments, isInWatchList, isWatched, isFavorite, id}) {
     super();
     this._title = title;
@@ -40,3 +43,5 @@ export class CardsTemplate extends AbstractComponent {
 </article>`;
   }
 }
+
+export default CardsTemplate;

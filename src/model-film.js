@@ -1,6 +1,7 @@
-import {DOMPurify, convertWatchingDate, convertNaN} from './utils.js';
+import {convertWatchingDate, convertNaN} from './utils.js';
+import DOMPurify from 'dompurify';
 
-export class ModelFilm {
+class ModelFilm {
   constructor(data) {
     this.id = DOMPurify.sanitize(data[`id`]);
     this.director = DOMPurify.sanitize(data[`film_info`][`director`]);
@@ -63,3 +64,5 @@ export class ModelFilm {
     };
   }
 }
+
+export default ModelFilm;

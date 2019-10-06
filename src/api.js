@@ -1,11 +1,11 @@
-import {ModelFilm} from './model-film.js';
-import {ModelComment} from './model-comment.js';
+import ModelFilm from './model-film.js';
+import ModelComment from './model-comment.js';
 
 const Method = {
   GET: `GET`,
   POST: `POST`,
   PUT: `PUT`,
-  DELETE: `DELETE`
+  DELETE: `DELETE`,
 };
 
 const toJSON = (response) => response.json();
@@ -18,7 +18,7 @@ const checkStatus = (response) => {
   }
 };
 
-export const API = class {
+class API {
   constructor({endPoint, authorization}) {
     this._endPoint = endPoint;
     this._authorization = authorization;
@@ -69,6 +69,6 @@ export const API = class {
         throw err;
       });
   }
-};
+}
 
 export default API;

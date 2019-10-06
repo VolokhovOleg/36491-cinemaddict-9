@@ -1,6 +1,7 @@
-import {moment, DOMPurify} from './utils.js';
+import moment from 'moment';
+import DOMPurify from 'dompurify';
 
-export class ModelComment {
+class ModelComment {
   constructor(data) {
     this.id = DOMPurify.sanitize(data[`id`]);
     this.emoji = DOMPurify.sanitize(data[`emotion`]);
@@ -25,3 +26,5 @@ export class ModelComment {
     };
   }
 }
+
+export default ModelComment;

@@ -1,7 +1,8 @@
-import {render, unrender, _} from '../utils.js';
-import {NoSearchResult} from '../components/no-search-message.js';
+import {render, unrender} from '../utils.js';
+import _ from 'lodash';
+import NoSearchResult from '../components/no-search-message.js';
 
-export class SearchController {
+class SearchController {
   constructor() {
     this._mainNavigation = document.querySelector(`.main-navigation`);
     this._sort = document.querySelector(`.sort`);
@@ -22,15 +23,15 @@ export class SearchController {
     this._extraCardsContainer.forEach((item) => item.classList.add(`visually-hidden`));
 
     const searchResultCount = this._searchResult.querySelector(`.result__count`);
-    const arr = cards.filter((element) => pattern.exec(element.title) !== null);
+    const findingCards = cards.filter((element) => pattern.exec(element.title) !== null);
 
-    if (_.size(arr) === 0) {
+    if (_.size(findingCards) === 0) {
       render(this._filmsList, new NoSearchResult().getElement());
     }
 
-    searchResultCount.textContent = _.size(arr);
+    searchResultCount.textContent = _.size(findingCards);
 
-    return arr;
+    return findingCards;
   }
 
   cancelSearch() {
@@ -47,3 +48,5 @@ export class SearchController {
     unrender(this._noSearchResultMessage);
   }
 }
+
+export default SearchController;

@@ -1,6 +1,6 @@
-import {AbstractComponent} from './abstract-component.js';
+import AbstractComponent from './abstract-component.js';
 
-export class Rank extends AbstractComponent {
+class Rank extends AbstractComponent {
   getTemplate() {
     return `<section class="header__profile profile">
       <p class="profile__rating"></p>
@@ -8,3 +8,5 @@ export class Rank extends AbstractComponent {
     </section>`;
   }
 }
+
+export default Rank;

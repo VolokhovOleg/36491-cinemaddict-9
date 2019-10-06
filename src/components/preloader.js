@@ -1,14 +1,9 @@
 import AbstractComponent from './abstract-component.js';
 
-export class FooterStats extends AbstractComponent {
-  constructor(allMovies) {
-    super();
-    this._allMovies = allMovies;
-  }
-
+class Preloader extends AbstractComponent {
   getTemplate() {
-    return `<p>${this._allMovies} movies inside</p>`;
+    return `<section class="films">Loading…</section>`;
   }
 }
 
-export default FooterStats;
+export default Preloader;

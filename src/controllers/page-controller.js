@@ -1,14 +1,16 @@
-import {render, unrender, _, moment} from '../utils.js';
-import {NoFilms} from '../components/no-films.js';
-import {FilmsContainer} from '../components/films-container.js';
-import {FooterStats} from '../components/footer-stats.js';
-import {FilmsList} from '../components/films-list.js';
-import {TopRated} from '../components/top-rated.js';
-import {MostCommented} from '../components/most-commented.js';
-import {MovieController} from './movie-controller.js';
-import {SearchController} from './search-controller.js';
-import {StatisticController} from './statistic-controller.js';
+import {render, unrender} from '../utils.js';
+import _ from 'lodash';
+import moment from 'moment';
 import {setProfileRate} from './../main.js';
+import NoFilms from '../components/no-films.js';
+import FilmsContainer from '../components/films-container.js';
+import FooterStats from '../components/footer-stats.js';
+import FilmsList from '../components/films-list.js';
+import TopRate from '../components/top-rate.js';
+import MostCommented from '../components/most-commented.js';
+import MovieController from './movie-controller.js';
+import SearchController from './search-controller.js';
+import StatisticController from './statistic-controller.js';
 
 const cardsAmount = {
   DEFAULT: 5,
@@ -31,7 +33,7 @@ const extraProperty = {
 };
 const MIN_PHRASE_LENGTH = 3;
 
-export class PageController {
+class PageController {
   constructor(cards, Sort, LoadMoreBtn, SearchResult) {
     this._container = document.querySelector(`.main`);
     this._statisticBlock = document.querySelector(`.statistic`);
@@ -43,7 +45,8 @@ export class PageController {
     this._Sort = new Sort();
     this._LoadMoreBtnTemplate = new LoadMoreBtn().getElement();
     this._SearchResult = new SearchResult();
-    this._statisticController = new StatisticController(this._cards);
+    this._TopRated = new TopRate();
+    this._MostCommented = new MostCommented();
     this._onChangeView = this.onChangeView.bind(this);
     this._renderCards = this.renderCards.bind(this);
     this._setProfileRate = setProfileRate;
@@ -118,9 +121,9 @@ export class PageController {
         this._LoadMoreBtnTemplate.addEventListener(`click`, () => this._renderCards(false, this._cards, true));
       }
 
-      render(this._filmBlock, new TopRated().getElement());
+      render(this._filmBlock, this._TopRated.getElement());
 
-      render(this._filmBlock, new MostCommented().getElement());
+      render(this._filmBlock, this._MostCommented.getElement());
 
       this._renderCards();
     }
@@ -144,8 +147,8 @@ export class PageController {
       this.resetLoadMoreBtn();
     });
 
-    searchInput.addEventListener(`input`, (arr) => {
-      this._phrase = searchInput.value;
+    searchInput.addEventListener(`input`, (cards) => {
+      this._phrase = searchInput.value.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ``);
       const searchController = new SearchController();
 
       if (_.size(this._phrase) >= MIN_PHRASE_LENGTH) {
@@ -156,9 +159,9 @@ export class PageController {
           this.hideStatistics();
         }
 
-        arr = searchController.searchFilm(this._phrase, this._cards);
+        cards = searchController.searchFilm(this._phrase, this._cards);
         this.resetLoadMoreBtn();
-        this._renderCards(false, arr);
+        this._renderCards(false, cards);
       } else if (!_.size(this._phrase)) {
         searchController.cancelSearch();
         this.resetLoadMoreBtn();
@@ -167,7 +170,7 @@ export class PageController {
     });
   }
 
-  renderCards(isDateChange = false, arr = [...this._cards], isLoadMoreCards = false) {
+  renderCards(isDateChange = false, cards = [...this._cards], isLoadMoreCards = false) {
     const extraFilmsContainer = document.querySelectorAll(`.films-list--extra`);
     const container = document.querySelector(`.films-list__container`);
     const mostTopRatedContainer = extraFilmsContainer[0].querySelector(`.films-list__container`);
@@ -177,26 +180,26 @@ export class PageController {
     if (this._currentFilter !== filterProperty.ALL) {
       switch (this._currentFilter) {
         case filterProperty.FAVORITES:
-          arr = [...this._cards.filter((element) => element.isFavorite)];
+          cards = [...this._cards.filter((element) => element.isFavorite)];
           break;
         case filterProperty.HISTORY:
-          arr = [...this._cards.filter((element) => element.isWatched)];
+          cards = [...this._cards.filter((element) => element.isWatched)];
           break;
         case filterProperty.WATCHLIST:
-          arr = [...this._cards.filter((element) => element.isInWatchList)];
+          cards = [...this._cards.filter((element) => element.isInWatchList)];
           break;
       }
     }
 
     if (this._currentSort !== sortProperty.DEFAULT) {
-      arr = this.makeNewCardOrder(arr);
+      cards = this.makeNewCardOrder(cards);
     }
 
     if (isDateChange) {
       filmsMarkUp.forEach((item) => unrender(item));
-      arr = arr.slice(0, this._renderIndex.max);
+      cards = cards.slice(0, this._renderIndex.max);
     } else {
-      if (_.size(arr) !== this._renderIndex.max) {
+      if (_.size(cards) !== this._renderIndex.max) {
         if (!isLoadMoreCards) {
           filmsMarkUp.forEach((item) => unrender(item));
         } else {
@@ -204,50 +207,63 @@ export class PageController {
           this._renderIndex.max += this._renderAmount;
         }
 
-        if (_.size(arr) <= this._renderIndex.max) {
+        if (_.size(cards) <= this._renderIndex.max) {
           unrender(this._LoadMoreBtnTemplate);
-          this._renderIndex.max = _.size(arr);
+          this._renderIndex.max = _.size(cards);
         }
 
-        arr = arr.slice(this._renderIndex.min, this._renderIndex.max);
+        cards = cards.slice(this._renderIndex.min, this._renderIndex.max);
       } else {
         filmsMarkUp.forEach((item) => unrender(item));
 
-        if (_.size(arr) <= this._renderIndex.max) {
+        if (_.size(cards) <= this._renderIndex.max) {
           unrender(this._LoadMoreBtnTemplate);
         }
       }
     }
 
-    this.initMovieController(arr, container);
+    this.initMovieController(cards, container);
 
-    this.renderExtraCards(extraProperty.TOP_RATED, mostTopRatedContainer);
-    this.renderExtraCards(extraProperty.MOST_COMMENTED, mostCommentedContainer);
+    if (!isLoadMoreCards) {
+      this.renderExtraCards(extraProperty.TOP_RATED, mostTopRatedContainer);
+      this.renderExtraCards(extraProperty.MOST_COMMENTED, mostCommentedContainer);
+    }
   }
 
   renderExtraCards(property, container) {
     let films = [...this._cards];
+    let isRender = true;
 
     switch (property) {
       case extraProperty.TOP_RATED:
         films = films.sort((a, b) => b.rating - a.rating);
+        if (_.head(films).rating === 0) {
+          unrender(this._TopRated.getElement());
+          isRender = false;
+        }
         break;
       case extraProperty.MOST_COMMENTED:
         films = films.sort((a, b) => _.size(b.comments) - _.size(a.comments));
+        if (_.isEmpty(_.head(films).comments)) {
+          unrender(this._MostCommented.getElement());
+          isRender = false;
+        }
         break;
     }
 
-    if (_.size(films) > cardsAmount.EXTRA && _.head(films) === _.last(films)) {
-      films = _.shuffle(films).slice(0, cardsAmount.EXTRA);
+    if (isRender) {
+      if (_.size(films) > cardsAmount.EXTRA && _.head(films) === _.last(films)) {
+        films = _.shuffle(films).slice(0, cardsAmount.EXTRA);
+      }
+
+      films = films.slice(0, cardsAmount.EXTRA);
+
+      this.initMovieController(films, container);
     }
-
-    films = films.slice(0, cardsAmount.EXTRA);
-
-    this.initMovieController(films, container);
   }
 
-  initMovieController(arr, container) {
-    arr.forEach((item) => {
+  initMovieController(cards, container) {
+    cards.forEach((item) => {
       const movieController = new MovieController(item, container, this._onChangeView, this._renderCards);
       this._subscriptions.push(movieController._setDefaultView);
       movieController.init();
@@ -288,12 +304,17 @@ export class PageController {
     const statsLink = document.querySelectorAll(`.main-navigation__item`);
     const sortButtons = document.querySelectorAll(`.sort__button`);
     const defaultFortBtn = document.querySelector(`.sort__button[data-sort="default"]`);
-
     const setDefaultSortState = () => {
       sortButtons.forEach((btn) => {
         btn.classList.remove(`sort__button--active`);
         defaultFortBtn.classList.add(`sort__button--active`);
       });
+    };
+
+    const changeState = (filter) => {
+      this._currentFilter = filter;
+      this._currentSort = sortProperty.DEFAULT;
+      this.hideStatistics();
     };
 
     statsLink.forEach((item) => {
@@ -310,27 +331,20 @@ export class PageController {
           case `#stats`:
             this.showStatistics();
             this._currentSort = sortProperty.DEFAULT;
-            this._statisticController.init();
+            this._statisticBlock.textContent = ``;
+            new StatisticController(this._cards).init();
             break;
           case `#watchlist`:
-            this._currentFilter = filterProperty.WATCHLIST;
-            this._currentSort = sortProperty.DEFAULT;
-            this.hideStatistics();
+            changeState(filterProperty.WATCHLIST);
             break;
           case `#history`:
-            this._currentFilter = filterProperty.HISTORY;
-            this._currentSort = sortProperty.DEFAULT;
-            this.hideStatistics();
+            changeState(filterProperty.HISTORY);
             break;
           case `#favorites`:
-            this._currentFilter = filterProperty.FAVORITES;
-            this._currentSort = sortProperty.DEFAULT;
-            this.hideStatistics();
+            changeState(filterProperty.FAVORITES);
             break;
           case `#all`:
-            this._currentFilter = filterProperty.ALL;
-            this._currentSort = sortProperty.DEFAULT;
-            this.hideStatistics();
+            changeState(filterProperty.ALL);
             break;
         }
 
@@ -340,16 +354,18 @@ export class PageController {
     });
   }
 
-  makeNewCardOrder(arr) {
+  makeNewCardOrder(cards) {
     switch (this._currentSort) {
       case sortProperty.DATE:
-        arr = arr.sort((a, b) => moment(b[sortProperty.DATE]).format(`x`) - moment(a[sortProperty.DATE]).format(`x`));
+        cards = cards.sort((a, b) => moment(b[sortProperty.DATE]).format(`x`) - moment(a[sortProperty.DATE]).format(`x`));
         break;
       case sortProperty.RATING:
-        arr = arr.sort((a, b) => b[sortProperty.RATING] - a[sortProperty.RATING]);
+        cards = cards.sort((a, b) => b[sortProperty.RATING] - a[sortProperty.RATING]);
         break;
     }
 
-    return arr;
+    return cards;
   }
 }
+
+export default PageController;
