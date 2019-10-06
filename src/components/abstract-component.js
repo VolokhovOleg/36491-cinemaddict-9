@@ -1,6 +1,6 @@
 import {createElement} from './../utils';
 
-export class AbstractComponent {
+class AbstractComponent {
   constructor() {
     this._element = null;
 
@@ -25,3 +25,5 @@ export class AbstractComponent {
     throw Error(`Abstract method not implemented`);
   }
 }
+
+export default AbstractComponent;

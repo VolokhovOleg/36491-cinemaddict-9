@@ -1,6 +1,6 @@
-import {AbstractComponent} from './abstract-component.js';
+import AbstractComponent from './abstract-component.js';
 
-export class MostCommented extends AbstractComponent {
+class MostCommented extends AbstractComponent {
   getTemplate() {
     return `<section class="films-list--extra">
   <h2 class="films-list__title">Most commented</h2>
@@ -9,3 +9,5 @@ export class MostCommented extends AbstractComponent {
 </section>`;
   }
 }
+
+export default MostCommented;

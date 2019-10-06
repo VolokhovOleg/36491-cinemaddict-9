@@ -1,108 +1,106 @@
-import {Search} from './components/search.js';
-import {Rank} from './components/rank.js';
-import {Menu} from './components/menu.js';
-import {generateFilters} from './data.js';
-import {render, setErrorEffect} from './utils.js';
-import {LoadMoreBtn} from './components/load-more-btn.js';
-import {PageController} from './controllers/page-controller.js';
-import {Sort} from './components/sort.js';
-import {Statistic} from './components/statistic.js';
-import {SearchResult} from './components/search-result.js';
-import {API} from './api.js';
+import {render} from './utils.js';
+import _ from 'lodash';
+import API from './api.js';
+import Search from './components/search.js';
+import Rank from './components/rank.js';
+import Menu from './components/menu.js';
+import LoadMoreBtn from './components/load-more-btn.js';
+import PageController from './controllers/page-controller.js';
+import Sort from './components/sort.js';
+import StatisticContainer from './components/statistic-container.js';
+import SearchResult from './components/search-result.js';
+import Preloader from './components/preloader.js';
+import {unrender} from "./utils";
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=7`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
 const END_POINT = `https://htmlacademy-es-9.appspot.com/cinemaddict`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
+const preloader = new Preloader();
 
-const filters = generateFilters();
 const header = document.querySelector(`.header`);
 const main = document.querySelector(`.main`);
+const menuFilter = {
+  watchList: ``,
+  history: ``,
+  favorite: ``,
+};
 let cards = [];
 
-const onDataChange = (data, apiMethod, renderCards, popUpRender = null) => {
-  switch (apiMethod) {
-    case `update`:
-      const form = document.querySelector(`.film-details__inner`);
-      const rateInputs = document.querySelectorAll(`.film-details__user-rating-input`);
-      rateInputs.forEach((input) => (input.disabled = true));
-      form.style.border = ``;
-      api.update(data)
-        .then(() => {
-          if (popUpRender) {
-            popUpRender();
-          }
-          return renderCards();
-        })
-        .catch((error) => {
-          setErrorEffect(form);
-          form.style.border = `1px solid red`;
-          rateInputs.forEach((input) => (input.disabled = false));
-          throw error;
-        });
+const setProfileRate = () => {
+  const rateName = document.querySelector(`.profile__rating`);
+  const watchedFilmsAmount = _.size(cards.filter((item) => item.isWatched));
+  let profileRate = ``;
+
+  switch (true) {
+    case watchedFilmsAmount === 0:
+      profileRate = ``;
       break;
-    case `post`:
-      const commentArea = document.querySelector(`.film-details__comment-input`);
-      const smileInputs = document.querySelectorAll(`.film-details__emoji-item`);
-      smileInputs.forEach((input) => (input.disabled = true));
-      commentArea.style.border = ``;
-      commentArea.disabled = true;
-      api.postComment(data)
-        .then(() => {
-          return api.getFilms().then((films) => {
-            cards = films;
-
-            if (popUpRender) {
-              popUpRender();
-            }
-
-            return renderCards(cards);
-          });
-        })
-        .catch((error) => {
-          setErrorEffect(commentArea);
-          commentArea.disabled = false;
-          commentArea.style.border = `1px solid red`;
-          smileInputs.forEach((input) => {
-            input.disabled = false;
-          });
-          throw error;
-        });
-
+    case watchedFilmsAmount >= 1 && watchedFilmsAmount <= 10:
+      profileRate = `novice`;
       break;
-    case `delete`:
-      api.deleteComment(data)
-        .then(() => {
-          return api.getFilms().then((films) => {
-            cards = films;
-
-            if (popUpRender) {
-              popUpRender();
-            }
-
-            return renderCards(cards);
-          });
-        });
+    case watchedFilmsAmount >= 11 && watchedFilmsAmount <= 20:
+      profileRate = `fan`;
+      break;
+    case watchedFilmsAmount >= 21:
+      profileRate = `movie buff`;
       break;
   }
+
+  rateName.textContent = profileRate;
+  return profileRate;
 };
 
-// Рендеринг «Поиск»
+const countingFilters = () => {
+  const filter = {
+    watchList: document.querySelector(`.main-navigation__item[href="#watchlist"] span`),
+    history: document.querySelector(`.main-navigation__item[href="#history"] span`),
+    favorite: document.querySelector(`.main-navigation__item[href="#favorites"] span`),
+  };
+
+  filter.history.textContent = _.size(cards.filter((item) => item.isWatched));
+  filter.favorite.textContent = _.size(cards.filter((item) => item.isFavorite));
+  filter.watchList.textContent = _.size(cards.filter((item) => item.isInWatchList));
+};
+
+const loadFilms = () => api.getFilms().then((films) => {
+  cards = films;
+  return cards;
+});
+
+const onDataChange = (data, apiMethod) => {
+  let promise = null;
+
+  switch (apiMethod) {
+    case `update`: promise = api.update(data);
+      break;
+    case `post`: promise = api.postComment(data).then(() => loadFilms());
+      break;
+    case `delete`: promise = api.deleteComment(data).then(() => loadFilms());
+      break;
+  }
+
+  return promise;
+};
+
+const getComments = (id) => api.getComments(id);
+
 render(header, new Search().getElement());
 
-// Рендеринг «Звание пользователя»
 render(header, new Rank().getElement());
 
-// Рендеринг «Меню»
-render(main, new Menu(filters).getElement());
+render(main, new Menu(menuFilter).getElement());
 
-// Рендеринг Статистики
-render(main, new Statistic().getElement());
+render(main, preloader.getElement());
+
+render(main, new StatisticContainer().getElement());
 
 api.getFilms().then((films) => {
   cards = films;
-
-  const pageController = new PageController(main, cards, Sort, LoadMoreBtn, SearchResult, onDataChange);
+  countingFilters();
+  const pageController = new PageController(cards, Sort, LoadMoreBtn, SearchResult);
+  unrender(preloader.getElement());
+  preloader.removeElement();
   pageController.init();
 });
 
-export default api;
+export {onDataChange, getComments, countingFilters, setProfileRate};

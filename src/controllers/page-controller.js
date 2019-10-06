@@ -1,160 +1,134 @@
 import {render, unrender} from '../utils.js';
-import {NoFilms} from '../components/no-films.js';
-import {FilmsContainer} from '../components/films-container.js';
-import {FooterStats} from '../components/footer-stats.js';
-import {FilmsList} from '../components/films-list.js';
-import {TopRated} from '../components/top-rated.js';
-import {MostCommented} from '../components/most-commented.js';
-import {MovieController} from './movie-controller.js';
-import {SearchController} from './search-controller.js';
-import {StatisticController} from "./statistic-controller";
+import _ from 'lodash';
+import moment from 'moment';
+import {setProfileRate} from './../main.js';
+import NoFilms from '../components/no-films.js';
+import FilmsContainer from '../components/films-container.js';
+import FooterStats from '../components/footer-stats.js';
+import FilmsList from '../components/films-list.js';
+import TopRate from '../components/top-rate.js';
+import MostCommented from '../components/most-commented.js';
+import MovieController from './movie-controller.js';
+import SearchController from './search-controller.js';
+import StatisticController from './statistic-controller.js';
 
 const cardsAmount = {
   DEFAULT: 5,
   EXTRA: 2,
 };
+const sortProperty = {
+  DEFAULT: `default`,
+  DATE: `releaseDate`,
+  RATING: `rating`,
+};
+const filterProperty = {
+  ALL: `all`,
+  WATCHLIST: `watchlist`,
+  HISTORY: `history`,
+  FAVORITES: `favorites`,
+};
+const extraProperty = {
+  TOP_RATED: `top rated`,
+  MOST_COMMENTED: `top commented`,
+};
 const MIN_PHRASE_LENGTH = 3;
 
-export class PageController {
-  constructor(container, cards, Sort, LoadMoreBtn, SearchResult, onDataChange) {
-    this._container = container;
+class PageController {
+  constructor(cards, Sort, LoadMoreBtn, SearchResult) {
+    this._container = document.querySelector(`.main`);
+    this._statisticBlock = document.querySelector(`.statistic`);
+    this._sortBlock = null;
+    this._filmBlock = null;
     this._cards = cards;
+    this._totalCardsAmount = _.size(this._cards);
+    this._renderAmount = cardsAmount.DEFAULT;
     this._Sort = new Sort();
-    this._totalCardsAmount = this._cards.length;
     this._LoadMoreBtnTemplate = new LoadMoreBtn().getElement();
-    this._sortedArr = [...this._cards];
-    this._phrase = ``;
     this._SearchResult = new SearchResult();
+    this._TopRated = new TopRate();
+    this._MostCommented = new MostCommented();
     this._onChangeView = this.onChangeView.bind(this);
-    this._onDataChange = onDataChange;
     this._renderCards = this.renderCards.bind(this);
-    this._statisticController = new StatisticController(this._sortedArr);
-    this._extraArr = this._cards.slice(0, 2);
+    this._setProfileRate = setProfileRate;
+    this._currentSort = sortProperty.DEFAULT;
+    this._currentFilter = filterProperty.ALL;
+    this._phrase = ``;
     this._renderIndex = {
-      min: 5,
-      max: 10
+      min: 0,
+      max: 5,
     };
     this._subscriptions = [];
+    this._isStatisticsShowed = false;
   }
 
   init() {
     if (this._totalCardsAmount < 1) {
-      // Рендеринг надписи если нет карточек
       render(this._container, new NoFilms().getElement());
     } else {
-
       const footerStats = document.querySelector(`.footer__statistics`);
 
-      // Рендеринг сортировки
       render(this._container, this._Sort.getElement());
 
-      // Рендеринг результат поиска
+      this._sortBlock = document.querySelector(`.sort`);
+      const sortLinks = document.querySelectorAll(`.sort__button`);
+
       render(this._container, this._SearchResult.getElement());
 
-      // Сортировка
-      const sortArr = (arr, sortAttr) => arr.sort((a, b) => b[sortAttr] - a[sortAttr]);
+      this._setProfileRate();
 
-      // Функция сортировки отсортированного массива
-      const makeNewCardOrder = (arr, sortAttr) => {
-        arr = this._cards;
-
-        if (!(sortAttr === `default`)) {
-          arr = this._sortedArr;
-          sortArr(arr, sortAttr);
-        }
-
-        // Удаляю из дома карточки фильмов
-        const filmsMarkUp = document.querySelectorAll(`.film-card`);
-
-        filmsMarkUp.forEach((item) => unrender(item));
-
-        // Рендеринг карточки фильмов
-        this._renderCards(arr);
-        this.refreshLoadMoreBtn();
-      };
-
-      // Навешиваю лисенеры на кнопки сортировки
-      const links = document.querySelectorAll(`.sort__button`);
-
-      links.forEach((link) => {
+      sortLinks.forEach((link) => {
         link.addEventListener(`click`, (evt) => {
           evt.preventDefault();
 
           if (!link.classList.contains(`sort__button--active`)) {
-            links.forEach((elem) => {
+            sortLinks.forEach((elem) => {
               elem.classList.remove(`sort__button--active`);
             });
 
             link.classList.add(`sort__button--active`);
             const sortAttr = link.getAttribute(`data-sort`);
 
-            makeNewCardOrder(this._sortedArr, sortAttr);
+            switch (sortAttr) {
+              case sortProperty.DEFAULT :
+                this._currentSort = sortProperty.DEFAULT;
+                break;
+              case sortProperty.DATE:
+                this._currentSort = sortProperty.DATE;
+                break;
+              case sortProperty.RATING:
+                this._currentSort = sortProperty.RATING;
+                break;
+              default:
+                this._currentSort = sortProperty.DEFAULT;
+            }
+
+            this.resetLoadMoreBtn();
+            this._renderCards();
           }
         });
       });
 
-      // Рендеринг «Контент»
       render(this._container, new FilmsContainer().getElement());
-      const filmsContainer = document.querySelector(`.films`);
+      this._filmBlock = document.querySelector(`.films`);
 
-      // Рендеринг количества фильмов в сервисе
       render(footerStats, new FooterStats(this._totalCardsAmount).getElement());
 
-      // Рендеринг «Котейнер для карточек»
-      render(filmsContainer, new FilmsList().getElement());
+      render(this._filmBlock, new FilmsList().getElement());
       const filmsList = document.querySelector(`.films-list`);
 
       if (this._totalCardsAmount > cardsAmount.DEFAULT) {
-
-        // Рендеринг «Show more»
         render(filmsList, this._LoadMoreBtnTemplate);
-
-        // Рендеринг карточек
-        this._LoadMoreBtnTemplate.addEventListener(`click`, () => {
-          const arr = this._sortedArr.filter((element) => this._sortedArr.indexOf(element) + 1 <= this._renderIndex.max && this._sortedArr.indexOf(element) + 1 > this._renderIndex.min);
-
-          this._renderCards(arr, cardsAmount.DEFAULT, document.querySelector(`.films-list__container`), false);
-
-          if (this._renderIndex.max >= this._totalCardsAmount || this._renderIndex.max % this._totalCardsAmount === 0) {
-            unrender(this._LoadMoreBtnTemplate);
-          }
-
-          this._renderIndex.min = this._renderIndex.max;
-          this._renderIndex.max += cardsAmount.DEFAULT;
-
-          if (this._renderIndex.max > this._totalCardsAmount) {
-            this._renderIndex.max -= this._renderIndex.max - this._totalCardsAmount;
-          }
-        });
+        this._LoadMoreBtnTemplate.addEventListener(`click`, () => this._renderCards(false, this._cards, true));
       }
 
-      // Рендеринг Котейнера для Top Rated
-      render(filmsContainer, new TopRated().getElement());
+      render(this._filmBlock, this._TopRated.getElement());
 
-      // Рендеринг Котейнера для Most Commented
-      render(filmsContainer, new MostCommented().getElement());
+      render(this._filmBlock, this._MostCommented.getElement());
 
-      // Рендеринг «Карточек фильма»
       this._renderCards();
-
-
-      // Доп блоки
-      const extraCardsContainer = document.querySelectorAll(`.films-list--extra`);
-
-      // Рендеринг «Карточек фильма» для Top Rated
-      this._renderCards(
-          this._extraArr,
-          cardsAmount.EXTRA,
-          extraCardsContainer[0].querySelector(`.films-list__container`));
-
-      // Рендеринг «Карточек фильма» для Most Commented
-      this._renderCards(
-          this._extraArr,
-          cardsAmount.EXTRA,
-          extraCardsContainer[1].querySelector(`.films-list__container`));
     }
 
-    this.toggleStatisticBlock();
+    this.toggleNavigationBlock();
 
     const searchInput = document.querySelector(`.search__field`);
     const searchInputResetBtn = document.querySelector(`.search__reset`);
@@ -163,71 +137,148 @@ export class PageController {
       evt.preventDefault();
       searchInput.value = ``;
       const searchController = new SearchController();
+
       searchController.cancelSearch();
-      this._sortedArr = [...this._cards];
-      this._totalCardsAmount = this._cards.length;
-      this._renderCards(this._cards);
-      this.refreshLoadMoreBtn();
+      this._renderIndex = {
+        min: 0,
+        max: 5,
+      };
+      this._renderCards();
+      this.resetLoadMoreBtn();
     });
 
-    searchInput.addEventListener(`input`, () => {
-      this._phrase = searchInput.value;
-      const searchController = new SearchController(this._phrase, this._cards);
+    searchInput.addEventListener(`input`, (cards) => {
+      this._phrase = searchInput.value.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ``);
+      const searchController = new SearchController();
 
-      if (this._phrase.length >= MIN_PHRASE_LENGTH) {
-        this._sortedArr = searchController.searchFilm();
-        this._totalCardsAmount = this._sortedArr.length;
-        this._renderCards();
-        this.refreshLoadMoreBtn();
-      } else if (!this._phrase.length) {
+      if (_.size(this._phrase) >= MIN_PHRASE_LENGTH) {
+        this._currentSort = sortProperty.DEFAULT;
+        this._currentFilter = filterProperty.ALL;
+
+        if (this._isStatisticsShowed) {
+          this.hideStatistics();
+        }
+
+        cards = searchController.searchFilm(this._phrase, this._cards);
+        this.resetLoadMoreBtn();
+        this._renderCards(false, cards);
+      } else if (!_.size(this._phrase)) {
         searchController.cancelSearch();
-        this._sortedArr = [...this._cards];
-        this._totalCardsAmount = this._cards.length;
-        this._renderCards(this._cards);
-        this.refreshLoadMoreBtn();
+        this.resetLoadMoreBtn();
+        this._renderCards(false, this._cards);
       }
     });
   }
 
-  // Рендеринг «Карточек фильма»
-  renderCards(
-      cardsArr = this._sortedArr,
-      amount = cardsAmount.DEFAULT,
-      container = document.querySelector(`.films-list__container`),
-      isDeleteCards = true) {
+  renderCards(isDateChange = false, cards = [...this._cards], isLoadMoreCards = false) {
+    const extraFilmsContainer = document.querySelectorAll(`.films-list--extra`);
+    const container = document.querySelector(`.films-list__container`);
+    const mostTopRatedContainer = extraFilmsContainer[0].querySelector(`.films-list__container`);
+    const mostCommentedContainer = extraFilmsContainer[1].querySelector(`.films-list__container`);
+    const filmsMarkUp = document.querySelectorAll(`.film-card`);
 
-    const filmsMarkUp = container.querySelectorAll(`.film-card`);
-
-    if (isDeleteCards) {
-      filmsMarkUp.forEach((item) => item.remove());
+    if (this._currentFilter !== filterProperty.ALL) {
+      switch (this._currentFilter) {
+        case filterProperty.FAVORITES:
+          cards = [...this._cards.filter((element) => element.isFavorite)];
+          break;
+        case filterProperty.HISTORY:
+          cards = [...this._cards.filter((element) => element.isWatched)];
+          break;
+        case filterProperty.WATCHLIST:
+          cards = [...this._cards.filter((element) => element.isInWatchList)];
+          break;
+      }
     }
 
-    const maxFilmAmount = this._cards.length;
-
-    if (maxFilmAmount > amount) {
-      cardsArr = cardsArr.slice(0, this._renderIndex.min);
+    if (this._currentSort !== sortProperty.DEFAULT) {
+      cards = this.makeNewCardOrder(cards);
     }
 
-    cardsArr.forEach((item) => {
-      const movieController = new MovieController(item, container, this._onDataChange, this._onChangeView, this._renderCards);
+    if (isDateChange) {
+      filmsMarkUp.forEach((item) => unrender(item));
+      cards = cards.slice(0, this._renderIndex.max);
+    } else {
+      if (_.size(cards) !== this._renderIndex.max) {
+        if (!isLoadMoreCards) {
+          filmsMarkUp.forEach((item) => unrender(item));
+        } else {
+          this._renderIndex.min += this._renderAmount;
+          this._renderIndex.max += this._renderAmount;
+        }
 
+        if (_.size(cards) <= this._renderIndex.max) {
+          unrender(this._LoadMoreBtnTemplate);
+          this._renderIndex.max = _.size(cards);
+        }
+
+        cards = cards.slice(this._renderIndex.min, this._renderIndex.max);
+      } else {
+        filmsMarkUp.forEach((item) => unrender(item));
+
+        if (_.size(cards) <= this._renderIndex.max) {
+          unrender(this._LoadMoreBtnTemplate);
+        }
+      }
+    }
+
+    this.initMovieController(cards, container);
+
+    if (!isLoadMoreCards) {
+      this.renderExtraCards(extraProperty.TOP_RATED, mostTopRatedContainer);
+      this.renderExtraCards(extraProperty.MOST_COMMENTED, mostCommentedContainer);
+    }
+  }
+
+  renderExtraCards(property, container) {
+    let films = [...this._cards];
+    let isRender = true;
+
+    switch (property) {
+      case extraProperty.TOP_RATED:
+        films = films.sort((a, b) => b.rating - a.rating);
+        if (_.head(films).rating === 0) {
+          unrender(this._TopRated.getElement());
+          isRender = false;
+        }
+        break;
+      case extraProperty.MOST_COMMENTED:
+        films = films.sort((a, b) => _.size(b.comments) - _.size(a.comments));
+        if (_.isEmpty(_.head(films).comments)) {
+          unrender(this._MostCommented.getElement());
+          isRender = false;
+        }
+        break;
+    }
+
+    if (isRender) {
+      if (_.size(films) > cardsAmount.EXTRA && _.head(films) === _.last(films)) {
+        films = _.shuffle(films).slice(0, cardsAmount.EXTRA);
+      }
+
+      films = films.slice(0, cardsAmount.EXTRA);
+
+      this.initMovieController(films, container);
+    }
+  }
+
+  initMovieController(cards, container) {
+    cards.forEach((item) => {
+      const movieController = new MovieController(item, container, this._onChangeView, this._renderCards);
       this._subscriptions.push(movieController._setDefaultView);
       movieController.init();
     });
   }
 
-  // Обновляю значения кнопки «Load More»
-  refreshLoadMoreBtn() {
-    this._renderIndex.max = 10;
-    this._renderIndex.min = 5;
+  resetLoadMoreBtn() {
     const filmsList = document.querySelector(`.films-list`);
+    this._renderIndex = {
+      min: 0,
+      max: 5,
+    };
 
     if (!document.contains(this._LoadMoreBtnTemplate)) {
       render(filmsList, this._LoadMoreBtnTemplate);
-    }
-
-    if (this._renderIndex.max % this._totalCardsAmount === 0 || this._totalCardsAmount <= this._renderIndex.min) {
-      unrender(this._LoadMoreBtnTemplate);
     }
   }
 
@@ -235,22 +286,86 @@ export class PageController {
     this._subscriptions.forEach((subscription) => subscription());
   }
 
-  // Переключаем блок со статистикой
-  toggleStatisticBlock() {
+  showStatistics() {
+    this._isStatisticsShowed = true;
+    this._statisticBlock.classList.remove(`visually-hidden`);
+    this._sortBlock.classList.add(`visually-hidden`);
+    this._filmBlock.classList.add(`visually-hidden`);
+  }
+
+  hideStatistics() {
+    this._isStatisticsShowed = false;
+    this._statisticBlock.classList.add(`visually-hidden`);
+    this._sortBlock.classList.remove(`visually-hidden`);
+    this._filmBlock.classList.remove(`visually-hidden`);
+  }
+
+  toggleNavigationBlock() {
     const statsLink = document.querySelectorAll(`.main-navigation__item`);
-    const statisticBlock = document.querySelector(`.statistic`);
+    const sortButtons = document.querySelectorAll(`.sort__button`);
+    const defaultFortBtn = document.querySelector(`.sort__button[data-sort="default"]`);
+    const setDefaultSortState = () => {
+      sortButtons.forEach((btn) => {
+        btn.classList.remove(`sort__button--active`);
+        defaultFortBtn.classList.add(`sort__button--active`);
+      });
+    };
+
+    const changeState = (filter) => {
+      this._currentFilter = filter;
+      this._currentSort = sortProperty.DEFAULT;
+      this.hideStatistics();
+    };
 
     statsLink.forEach((item) => {
       item.addEventListener(`click`, (evt) => {
         evt.preventDefault();
+        const hashTag = item.getAttribute(`href`);
 
-        switch (item.getAttribute(`href`)) {
+        statsLink.forEach((link) => link.classList.remove(`main-navigation__item--active`));
+        item.classList.add(`main-navigation__item--active`);
+
+        setDefaultSortState();
+
+        switch (hashTag) {
           case `#stats`:
-            statisticBlock.classList.toggle(`visually-hidden`);
-            this._statisticController.init();
+            this.showStatistics();
+            this._currentSort = sortProperty.DEFAULT;
+            this._statisticBlock.textContent = ``;
+            new StatisticController(this._cards).init();
+            break;
+          case `#watchlist`:
+            changeState(filterProperty.WATCHLIST);
+            break;
+          case `#history`:
+            changeState(filterProperty.HISTORY);
+            break;
+          case `#favorites`:
+            changeState(filterProperty.FAVORITES);
+            break;
+          case `#all`:
+            changeState(filterProperty.ALL);
             break;
         }
+
+        this.resetLoadMoreBtn();
+        this._renderCards();
       });
     });
   }
+
+  makeNewCardOrder(cards) {
+    switch (this._currentSort) {
+      case sortProperty.DATE:
+        cards = cards.sort((a, b) => moment(b[sortProperty.DATE]).format(`x`) - moment(a[sortProperty.DATE]).format(`x`));
+        break;
+      case sortProperty.RATING:
+        cards = cards.sort((a, b) => b[sortProperty.RATING] - a[sortProperty.RATING]);
+        break;
+    }
+
+    return cards;
+  }
 }
+
+export default PageController;

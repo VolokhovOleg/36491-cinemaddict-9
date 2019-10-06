@@ -1,6 +1,6 @@
-import {AbstractComponent} from './abstract-component.js';
+import AbstractComponent from './abstract-component.js';
 
-export class Menu extends AbstractComponent {
+class Menu extends AbstractComponent {
   constructor({watchList, history, favorite}) {
     super();
     this._watchList = watchList;
@@ -18,3 +18,5 @@ export class Menu extends AbstractComponent {
 </nav>`;
   }
 }
+
+export default Menu;

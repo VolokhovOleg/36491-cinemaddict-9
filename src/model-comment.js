@@ -1,10 +1,13 @@
-export class ModelComment {
+import moment from 'moment';
+import DOMPurify from 'dompurify';
+
+class ModelComment {
   constructor(data) {
-    this.id = data[`id`];
-    this.emoji = data[`emotion`];
-    this.author = data[`author`];
-    this.content = data[`comment`];
-    this.date = new Date(data[`date`]);
+    this.id = DOMPurify.sanitize(data[`id`]);
+    this.emoji = DOMPurify.sanitize(data[`emotion`]);
+    this.author = DOMPurify.sanitize(data[`author`]);
+    this.content = DOMPurify.sanitize(data[`comment`]);
+    this.date = DOMPurify.sanitize(moment(data[`date`]).toISOString());
   }
 
   static parseComment(data) {
@@ -17,9 +20,11 @@ export class ModelComment {
 
   toRAW() {
     return {
-      "comment": this.content,
-      "date": `2019-05-11T16:12:32.554Z`,
-      "emotion": `smile`,
+      'comment': this.content,
+      'date': moment(this.date).format(),
+      'emotion': this.emoji,
     };
   }
 }
+
+export default ModelComment;

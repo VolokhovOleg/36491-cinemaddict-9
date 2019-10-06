@@ -1,61 +1,61 @@
-import {checkWordEnding, checkChecked, generateRunningTime, moment, _} from './../utils.js';
-import {AbstractComponent} from './abstract-component.js';
+import {checkWordEnding, checkChecked, convertRunningTime} from './../utils.js';
+import _ from 'lodash';
+import moment from 'moment';
+import AbstractComponent from './abstract-component.js';
 
 const isCustomRate = (customRate) => `<p class="film-details__user-rating">Your rate ${customRate}</p>`;
 
 const isRatingBlock = (poster, title) => `<div class="form-details__middle-container">
-    <section class="film-details__user-rating-wrap">
-      <div class="film-details__user-rating-controls">
-        <button class="film-details__watched-reset" type="button">Undo</button>
+  <section class="film-details__user-rating-wrap">
+    <div class="film-details__user-rating-controls">
+      <button class="film-details__watched-reset" type="button">Undo</button>
+    </div>
+
+    <div class="film-details__user-score">
+      <div class="film-details__user-rating-poster">
+        <img src="${poster}" alt="${title}" class="film-details__user-rating-img">
       </div>
 
-      <div class="film-details__user-score">
-        <div class="film-details__user-rating-poster">
-          <img src="${poster}" alt="${title}" class="film-details__user-rating-img">
+      <section class="film-details__user-rating-inner">
+        <h3 class="film-details__user-rating-title">${title}</h3>
+
+        <p class="film-details__user-rating-feelings">How you feel it?</p>
+
+        <div class="film-details__user-rating-score">
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="1" id="rating-1">
+          <label class="film-details__user-rating-label" for="rating-1">1</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="2" id="rating-2">
+          <label class="film-details__user-rating-label" for="rating-2">2</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="3" id="rating-3">
+          <label class="film-details__user-rating-label" for="rating-3">3</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="4" id="rating-4">
+          <label class="film-details__user-rating-label" for="rating-4">4</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="5" id="rating-5">
+          <label class="film-details__user-rating-label" for="rating-5">5</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="6" id="rating-6">
+          <label class="film-details__user-rating-label" for="rating-6">6</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="7" id="rating-7">
+          <label class="film-details__user-rating-label" for="rating-7">7</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="8" id="rating-8">
+          <label class="film-details__user-rating-label" for="rating-8">8</label>
+
+          <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="9" id="rating-9">
+          <label class="film-details__user-rating-label" for="rating-9">9</label>
         </div>
+      </section>
+    </div>
+  </section>
+</div>`;
 
-        <section class="film-details__user-rating-inner">
-          <h3 class="film-details__user-rating-title">${title}</h3>
-
-          <p class="film-details__user-rating-feelings">How you feel it?</p>
-
-          <div class="film-details__user-rating-score">
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="1" id="rating-1">
-            <label class="film-details__user-rating-label" for="rating-1">1</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="2" id="rating-2">
-            <label class="film-details__user-rating-label" for="rating-2">2</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="3" id="rating-3">
-            <label class="film-details__user-rating-label" for="rating-3">3</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="4" id="rating-4">
-            <label class="film-details__user-rating-label" for="rating-4">4</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="5" id="rating-5">
-            <label class="film-details__user-rating-label" for="rating-5">5</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="6" id="rating-6">
-            <label class="film-details__user-rating-label" for="rating-6">6</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="7" id="rating-7">
-            <label class="film-details__user-rating-label" for="rating-7">7</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="8" id="rating-8">
-            <label class="film-details__user-rating-label" for="rating-8">8</label>
-
-            <input type="radio" name="score" class="film-details__user-rating-input visually-hidden" value="9" id="rating-9" checked="">
-            <label class="film-details__user-rating-label" for="rating-9">9</label>
-          </div>
-        </section>
-      </div>
-    </section>
-  </div>`;
-
-const changeCommentsAmount = (amount) => amount;
-
-export class FilmDetail extends AbstractComponent {
-  constructor({emoji, poster, title, ratingSystem, customerRate, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, comments, isInWatchList, isWatched, isFavorite}) {
+class FilmDetail extends AbstractComponent {
+  constructor({poster, title, ratingSystem, customerRate, rating, director, writers, actors, releaseDate, runningTime, country, genres, description, isInWatchList, isWatched, isFavorite}) {
     super();
     this._poster = poster;
     this._title = title;
@@ -70,11 +70,9 @@ export class FilmDetail extends AbstractComponent {
     this._country = country;
     this._genres = genres;
     this._description = description;
-    this._comments = comments;
     this._isInWatchList = isInWatchList;
     this._isWatched = isWatched;
     this._isFavorite = isFavorite;
-    this._emoji = emoji;
   }
 
   getTemplate() {
@@ -123,7 +121,7 @@ export class FilmDetail extends AbstractComponent {
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Runtime</td>
-              <td class="film-details__cell">${generateRunningTime(this._runningTime)}</td>
+              <td class="film-details__cell">${convertRunningTime(this._runningTime)}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Country</td>
@@ -155,44 +153,10 @@ export class FilmDetail extends AbstractComponent {
       </section>
     </div>
     ${this._isWatched ? isRatingBlock(this._poster, this._title) : ``}
-    <div class="form-details__bottom-container">
-      <section class="film-details__comments-wrap">
-        <h3 class="film-details__comments-title">Comment${checkWordEnding(_.size(this._comments))} <span class="film-details__comments-count">${changeCommentsAmount(_.size(this._comments))}</span></h3>
-
-        <ul class="film-details__comments-list"></ul>
-
-        <div class="film-details__new-comment">
-          <div for="add-emoji" class="film-details__add-emoji-label"></div>
-
-          <label class="film-details__comment-label">
-            <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
-          </label>
-
-          <div class="film-details__emoji-list">
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile">
-            <label class="film-details__emoji-label" for="emoji-smile">
-              <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping">
-            <label class="film-details__emoji-label" for="emoji-sleeping">
-              <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke">
-            <label class="film-details__emoji-label" for="emoji-puke">
-              <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry">
-            <label class="film-details__emoji-label" for="emoji-angry">
-              <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
-            </label>
-          </div>
-        </div>
-      </section>
-    </div>
+    <div class="form-details__bottom-container"></div>
   </form>
 </section>`;
   }
 }
+
+export default FilmDetail;

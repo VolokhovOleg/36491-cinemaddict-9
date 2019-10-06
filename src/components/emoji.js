@@ -1,6 +1,6 @@
-import {AbstractComponent} from './abstract-component.js';
+import AbstractComponent from './abstract-component.js';
 
-export class Emoji extends AbstractComponent {
+class Emoji extends AbstractComponent {
   constructor(emoji) {
     super();
     this._emoji = emoji;
@@ -10,3 +10,5 @@ export class Emoji extends AbstractComponent {
     return `<img src="images/emoji/${this._emoji}.png" width="55" height="55" alt="emoji">`;
   }
 }
+
+export default Emoji;
